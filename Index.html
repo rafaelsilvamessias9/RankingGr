@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GR Consórcio · Ranking de Vendas</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<style>
+:root{
+  --bg:#07090F;--surface:#0E1420;--surface2:#151D2E;--surface3:#1C2640;
+  --blue:#1A3A6B;--blue-mid:#2563B0;--blue-accent:#3B82D4;--blue-light:#7EB8FF;
+  --green:#22C55E;--green-dim:rgba(34,197,94,.12);
+  --yellow:#EAB308;--yellow-dim:rgba(234,179,8,.12);
+  --red:#EF4444;--red-dim:rgba(239,68,68,.12);
+  --gold:#F59E0B;--silver:#94A3B8;--bronze:#CD7F32;
+  --white:#FFFFFF;--gray:#4B5E78;--gray-light:#8899AA;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(26,58,107,.35) 0%,transparent 60%);pointer-events:none;z-index:0}
+
+/* SETUP SCREEN */
+#setupScreen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+#setupScreen.hidden{display:none}
+.setup-box{background:var(--surface);border:1px solid rgba(59,130,212,.3);padding:48px 40px;width:100%;max-width:520px;position:relative}
+.setup-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--blue-accent))}
+.setup-logo{font-family:'Bebas Neue',sans-serif;font-size:32px;margin-bottom:4px}
+.setup-logo span{color:var(--blue-accent)}
+.setup-sub{font-size:13px;color:var(--gray-light);margin-bottom:32px}
+.setup-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-light);margin-bottom:7px;display:block}
+.setup-input{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--white);padding:13px 16px;font-family:'Barlow',sans-serif;font-size:14px;outline:none;margin-bottom:14px;transition:all .2s}
+.setup-input:focus{border-color:var(--blue-accent);background:rgba(59,130,212,.07)}
+.setup-input::placeholder{color:rgba(255,255,255,.2)}
+.setup-hint{font-size:12px;color:var(--gray-light);background:rgba(59,130,212,.08);border:1px solid rgba(59,130,212,.15);padding:12px 16px;margin-bottom:24px;line-height:1.6}
+.setup-hint code{color:var(--blue-light);font-size:11px}
+.setup-btn{width:100%;background:var(--blue-mid);color:var(--white);border:none;padding:16px;font-family:'Barlow',sans-serif;font-size:15px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.setup-btn:hover{background:var(--blue-accent)}
+
+/* LOADING */
+#loadingScreen{position:fixed;inset:0;background:var(--bg);z-index:9998;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+#loadingScreen.hidden{display:none}
+.spinner{width:40px;height:40px;border:3px solid rgba(59,130,212,.2);border-top-color:var(--blue-accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:14px;color:var(--gray-light);letter-spacing:.1em;text-transform:uppercase}
+
+/* CONNECTION STATUS */
+.conn-dot{width:8px;height:8px;border-radius:50%;background:var(--gray);display:inline-block;margin-right:6px;transition:background .3s}
+.conn-dot.online{background:var(--green);box-shadow:0 0 6px rgba(34,197,94,.5)}
+.conn-dot.offline{background:var(--red)}
+
+/* HEADER */
+header{position:relative;z-index:10;padding:24px 5vw 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.08em}
+.logo span{color:var(--blue-accent)}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.conn-badge{font-size:12px;color:var(--gray-light);display:flex;align-items:center}
+.btn{padding:9px 18px;font-family:'Barlow',sans-serif;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border:none;transition:all .2s}
+.btn-add{background:var(--blue-mid);color:var(--white)}
+.btn-add:hover{background:var(--blue-accent)}
+.btn-config{background:rgba(255,255,255,.05);color:var(--gray-light);border:1px solid rgba(255,255,255,.08)}
+.btn-config:hover{border-color:var(--blue-accent);color:var(--blue-accent)}
+.btn-reset{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25)}
+.btn-reset:hover{background:rgba(239,68,68,.22)}
+
+/* WEEK NAVIGATOR */
+.week-nav{position:relative;z-index:10;margin:20px 5vw 0;background:var(--surface);border:1px solid rgba(59,130,212,.15);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.week-nav-left{display:flex;align-items:center;gap:12px}
+.week-arrow{width:36px;height:36px;background:rgba(59,130,212,.08);border:1px solid rgba(59,130,212,.2);color:var(--blue-accent);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-family:monospace}
+.week-arrow:hover{background:rgba(59,130,212,.18);border-color:var(--blue-accent)}
+.week-arrow:disabled{opacity:.3;cursor:not-allowed}
+.week-info{text-align:center}
+.week-label{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.05em;color:var(--white)}
+.week-dates{font-size:12px;color:var(--gray-light);margin-top:2px}
+.week-current-badge{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--green);background:var(--green-dim);border:1px solid rgba(34,197,94,.3);padding:3px 10px}
+.week-past-badge{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--yellow);background:var(--yellow-dim);border:1px solid rgba(234,179,8,.3);padding:3px 10px}
+.week-nav-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.week-date-input{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--white);padding:8px 12px;font-family:'Barlow',sans-serif;font-size:13px;outline:none;cursor:pointer;transition:all .2s}
+.week-date-input:focus{border-color:var(--blue-accent)}
+input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.5;cursor:pointer}
+.btn-today{background:rgba(59,130,212,.12);color:var(--blue-accent);border:1px solid rgba(59,130,212,.3);padding:8px 14px;font-family:'Barlow',sans-serif;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.btn-today:hover{background:rgba(59,130,212,.22)}
+
+/* META BAR */
+.meta-bar{position:relative;z-index:10;margin:8px 5vw 0;padding:12px 24px;background:var(--surface2);border:1px solid rgba(255,255,255,.04);display:flex;align-items:center;gap:28px;flex-wrap:wrap}
+.meta-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--gray-light)}
+.meta-dot{width:8px;height:8px;border-radius:50%}
+.dot-green{background:var(--green)}.dot-yellow{background:var(--yellow)}.dot-red{background:var(--red)}
+.meta-item strong{color:var(--white)}
+
+/* STATS */
+.stats-wrap{position:relative;z-index:10;padding:24px 5vw 0}
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
+.stat-card{background:var(--surface);padding:18px 20px;border:1px solid rgba(255,255,255,.05);text-align:center}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:34px;color:var(--blue-accent);line-height:1}
+.stat-label{font-size:11px;color:var(--gray-light);letter-spacing:.08em;text-transform:uppercase;margin-top:3px}
+
+/* CHART */
+.chart-section{position:relative;z-index:10;padding:24px 5vw 0}
+.chart-box{background:var(--surface);border:1px solid rgba(255,255,255,.05);padding:24px}
+.chart-title{font-size:12px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--blue-accent);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.chart-title::before{content:'';display:block;width:20px;height:2px;background:var(--blue-accent)}
+.chart-area{overflow-x:auto}
+.chart-bars{display:flex;align-items:flex-end;gap:8px;min-height:140px;padding-bottom:28px;position:relative}
+.chart-bars::before{content:'';position:absolute;bottom:28px;left:0;right:0;height:1px;background:rgba(255,255,255,.06)}
+.chart-week{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:48px;cursor:pointer}
+.chart-bar-wrap{flex:1;display:flex;align-items:flex-end;width:100%}
+.chart-bar{width:100%;border-radius:2px 2px 0 0;transition:all .3s;min-height:3px;background:rgba(59,130,212,.4)}
+.chart-week.active .chart-bar{background:var(--blue-accent);box-shadow:0 0 12px rgba(59,130,212,.4)}
+.chart-week:hover .chart-bar{background:var(--blue-light)}
+.chart-week-label{font-size:10px;color:var(--gray-light);letter-spacing:.05em;white-space:nowrap;padding-top:6px;border-top:1px solid rgba(255,255,255,.06);width:100%;text-align:center}
+.chart-week.active .chart-week-label{color:var(--blue-accent);font-weight:700}
+.chart-num{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--gray-light)}
+.chart-week.active .chart-num{color:var(--blue-accent)}
+
+/* PODIUM */
+.podium-section{position:relative;z-index:10;padding:28px 5vw 0}
+.section-title{font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--blue-accent);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.section-title::before{content:'';display:block;width:20px;height:2px;background:var(--blue-accent)}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;min-height:200px}
+.podium-slot{display:flex;flex-direction:column;align-items:center;gap:10px;flex:1;max-width:190px}
+.podium-card{width:100%;background:var(--surface);border:1px solid rgba(255,255,255,.07);padding:18px 14px;text-align:center;position:relative;transition:transform .3s}
+.podium-card:hover{transform:translateY(-4px)}
+.p1 .podium-card{background:linear-gradient(160deg,rgba(245,158,11,.13) 0%,var(--surface) 60%);border-color:rgba(245,158,11,.35)}
+.p2 .podium-card{background:linear-gradient(160deg,rgba(148,163,184,.08) 0%,var(--surface) 60%);border-color:rgba(148,163,184,.25)}
+.p3 .podium-card{background:linear-gradient(160deg,rgba(205,127,50,.08) 0%,var(--surface) 60%);border-color:rgba(205,127,50,.25)}
+.podium-avatar{width:58px;height:58px;border-radius:50%;margin:0 auto 8px;object-fit:cover;border:3px solid var(--gray)}
+.p1 .podium-avatar{border-color:var(--gold);box-shadow:0 0 18px rgba(245,158,11,.4)}
+.p2 .podium-avatar{border-color:var(--silver)}
+.p3 .podium-avatar{border-color:var(--bronze)}
+.podium-medal{font-size:24px;margin-bottom:4px}
+.podium-name{font-size:14px;font-weight:800;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.podium-team{font-size:10px;color:var(--gray-light);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.podium-sales{font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1}
+.p1 .podium-sales{color:var(--gold)}.p2 .podium-sales{color:var(--silver)}.p3 .podium-sales{color:var(--bronze)}
+.podium-label{font-size:10px;color:var(--gray-light)}
+.podium-block{width:100%;border-radius:2px 2px 0 0}
+.p1 .podium-block{height:72px;background:linear-gradient(180deg,rgba(245,158,11,.4),rgba(245,158,11,.08))}
+.p2 .podium-block{height:50px;background:linear-gradient(180deg,rgba(148,163,184,.3),rgba(148,163,184,.04))}
+.p3 .podium-block{height:36px;background:linear-gradient(180deg,rgba(205,127,50,.3),rgba(205,127,50,.04))}
+.podium-pos{font-family:'Bebas Neue',sans-serif;font-size:20px;padding:6px}
+.p1 .podium-pos{color:var(--gold)}.p2 .podium-pos{color:var(--silver)}.p3 .podium-pos{color:var(--bronze)}
+
+/* RANKING */
+.ranking-section{position:relative;z-index:10;padding:24px 5vw 60px}
+.ranking-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.filter-group{display:flex;gap:6px;flex-wrap:wrap}
+.filter-btn{padding:6px 12px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:transparent;color:var(--gray-light);transition:all .2s}
+.filter-btn.active,.filter-btn:hover{border-color:var(--blue-accent);color:var(--blue-accent);background:rgba(59,130,212,.08)}
+.rank-list{display:flex;flex-direction:column;gap:5px}
+.rank-card{display:grid;grid-template-columns:44px 52px 1fr auto auto;align-items:center;gap:14px;padding:14px 18px;background:var(--surface);border:1px solid rgba(255,255,255,.05);transition:all .25s;position:relative;overflow:hidden}
+.rank-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.rank-card.status-green::before{background:var(--green)}
+.rank-card.status-yellow::before{background:var(--yellow)}
+.rank-card.status-red::before{background:var(--red)}
+.rank-card.status-green{background:linear-gradient(90deg,var(--green-dim) 0%,var(--surface) 35%)}
+.rank-card.status-yellow{background:linear-gradient(90deg,var(--yellow-dim) 0%,var(--surface) 35%)}
+.rank-card.status-red{background:linear-gradient(90deg,var(--red-dim) 0%,var(--surface) 35%)}
+.rank-card:hover{border-color:rgba(59,130,212,.2);transform:translateX(3px)}
+.rank-card.readonly{pointer-events:none}
+.rank-pos{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gray);text-align:center;line-height:1}
+.rank-avatar{width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid var(--gray)}
+.status-green .rank-avatar{border-color:var(--green)}
+.status-yellow .rank-avatar{border-color:var(--yellow)}
+.status-red .rank-avatar{border-color:var(--red)}
+.rank-name{font-size:15px;font-weight:800;margin-bottom:2px}
+.rank-team{font-size:11px;color:var(--gray-light);letter-spacing:.06em;text-transform:uppercase}
+.rank-progress{margin-top:5px;display:flex;align-items:center;gap:8px}
+.progress-bar{flex:1;height:3px;background:rgba(255,255,255,.08);overflow:hidden;max-width:140px}
+.progress-fill{height:100%;transition:width .5s ease}
+.status-green .progress-fill{background:var(--green)}
+.status-yellow .progress-fill{background:var(--yellow)}
+.status-red .progress-fill{background:var(--red)}
+.progress-text{font-size:10px;color:var(--gray-light)}
+.status-badge{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px}
+.badge-green{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,.3)}
+.badge-yellow{background:var(--yellow-dim);color:var(--yellow);border:1px solid rgba(234,179,8,.3)}
+.badge-red{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.rank-sales-block{text-align:center;min-width:52px}
+.rank-sales-num{font-family:'Bebas Neue',sans-serif;font-size:34px;line-height:1}
+.status-green .rank-sales-num{color:var(--green)}
+.status-yellow .rank-sales-num{color:var(--yellow)}
+.status-red .rank-sales-num{color:var(--red)}
+.rank-sales-label{font-size:10px;color:var(--gray-light);letter-spacing:.06em;text-transform:uppercase}
+.rank-actions{display:flex;flex-direction:column;gap:5px;align-items:flex-end}
+.action-row{display:flex;gap:3px}
+.act-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);transition:all .2s;font-family:monospace;color:var(--white)}
+.act-btn:hover{border-color:var(--blue-accent);background:rgba(59,130,212,.12)}
+.act-btn.plus:hover{border-color:var(--green);background:rgba(34,197,94,.12);color:var(--green)}
+.act-btn.minus:hover{border-color:var(--red);background:rgba(239,68,68,.12);color:var(--red)}
+.act-btn.edit-btn:hover{border-color:var(--yellow);background:rgba(234,179,8,.12);color:var(--yellow)}
+.act-btn.del-btn:hover{border-color:var(--red);background:rgba(239,68,68,.15);color:var(--red)}
+.readonly-notice{text-align:center;padding:12px;font-size:12px;color:var(--yellow);background:var(--yellow-dim);border:1px solid rgba(234,179,8,.2);margin-bottom:12px;letter-spacing:.05em}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid rgba(59,130,212,.25);padding:32px;width:100%;max-width:440px;position:relative;animation:modalIn .22s ease}
+@keyframes modalIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--blue-accent))}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:.05em;margin-bottom:20px}
+.modal-field{margin-bottom:15px}
+.modal-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-light);margin-bottom:6px;display:block}
+.modal-input{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--white);padding:11px 14px;font-family:'Barlow',sans-serif;font-size:14px;outline:none;transition:all .2s}
+.modal-input:focus{border-color:var(--blue-accent);background:rgba(59,130,212,.07)}
+.modal-input::placeholder{color:rgba(255,255,255,.2)}
+.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-btns{display:flex;gap:8px;margin-top:20px}
+.modal-save{flex:1;background:var(--blue-mid);color:var(--white);border:none;padding:13px;font-family:'Barlow',sans-serif;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.modal-save:hover{background:var(--blue-accent)}
+.modal-cancel{flex:1;background:transparent;color:var(--gray-light);border:1px solid rgba(255,255,255,.1);padding:13px;font-family:'Barlow',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.modal-cancel:hover{border-color:var(--red);color:var(--red)}
+.modal-close{position:absolute;top:14px;right:14px;width:30px;height:30px;background:rgba(255,255,255,.05);border:none;color:var(--white);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.modal-close:hover{background:rgba(239,68,68,.2);color:var(--red)}
+.avatar-preview-wrap{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.avatar-preview{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--blue-accent)}
+.avatar-hint{font-size:11px;color:var(--gray-light);line-height:1.55}
+.confirm-modal{background:var(--surface);border:1px solid rgba(239,68,68,.3);padding:32px;width:100%;max-width:360px;text-align:center;animation:modalIn .2s ease}
+.confirm-modal h3{font-family:'Bebas Neue',sans-serif;font-size:22px;margin-bottom:10px}
+.confirm-modal p{font-size:13px;color:var(--gray-light);margin-bottom:22px;line-height:1.6}
+.confirm-btns{display:flex;gap:8px}
+.btn-danger{flex:1;background:var(--red);color:var(--white);border:none;padding:13px;font-family:'Barlow',sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.btn-danger:hover{background:#dc2626}
+.btn-cancel-plain{flex:1;background:transparent;color:var(--gray-light);border:1px solid rgba(255,255,255,.1);padding:13px;font-family:'Barlow',sans-serif;font-size:13px;font-weight:700;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.btn-cancel-plain:hover{border-color:var(--gray-light);color:var(--white)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--gray-light)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-text{font-size:15px;margin-bottom:6px}
+.empty-sub{font-size:12px;opacity:.6}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid rgba(59,130,212,.3);padding:11px 22px;font-size:13px;font-weight:700;z-index:2000;transition:transform .3s;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.t-green{border-color:rgba(34,197,94,.4);color:var(--green)}
+.toast.t-red{border-color:rgba(239,68,68,.4);color:var(--red)}
+.toast.t-blue{border-color:rgba(59,130,212,.4);color:var(--blue-light)}
+
+@media(max-width:760px){
+  .stats-bar{grid-template-columns:1fr 1fr}
+  .rank-card{grid-template-columns:34px 42px 1fr auto}
+  .rank-sales-label{display:none}
+  .rank-team{display:none}
+  .podium{gap:6px}
+  .podium-name{font-size:12px}
+  .chart-section{display:none}
+}
+@media(max-width:480px){
+  .rank-card{grid-template-columns:28px 38px 1fr auto;gap:8px;padding:11px 12px}
+  .rank-avatar{width:38px;height:38px}
+  .rank-pos{font-size:18px}
+  .modal{padding:24px 18px}
+  .modal-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setupScreen">
+  <div class="setup-box">
+    <div class="setup-logo">GR <span>Consórcio</span></div>
+    <div class="setup-sub">Configure a conexão com o Firebase para começar</div>
+    <div class="setup-hint">
+      Acesse <strong>console.firebase.google.com</strong> → seu projeto → <strong>Configurações do projeto</strong> → role até <strong>"Seus aplicativos"</strong> e copie os valores abaixo.<br><br>
+      <code>Banco de Dados → Realtime Database → copie a URL (ex: https://seu-projeto-default-rtdb.firebaseio.com)</code>
+    </div>
+    <label class="setup-label">API Key</label>
+    <input class="setup-input" id="cfgApiKey" placeholder="AIzaSy...">
+    <label class="setup-label">Auth Domain</label>
+    <input class="setup-input" id="cfgAuthDomain" placeholder="seu-projeto.firebaseapp.com">
+    <label class="setup-label">Database URL</label>
+    <input class="setup-input" id="cfgDbUrl" placeholder="https://seu-projeto-default-rtdb.firebaseio.com">
+    <label class="setup-label">Project ID</label>
+    <input class="setup-input" id="cfgProjectId" placeholder="seu-projeto">
+    <button class="setup-btn" onclick="saveConfig()">Conectar ao Firebase →</button>
+    <div style="margin-top:14px;text-align:center">
+      <button onclick="useDemoMode()" style="background:none;border:none;color:var(--gray-light);font-size:12px;cursor:pointer;text-decoration:underline;font-family:'Barlow',sans-serif">Usar modo demonstração (sem Firebase)</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loadingScreen" class="hidden">
+  <div class="spinner"></div>
+  <div class="loading-text">Conectando ao Firebase...</div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+
+<header>
+  <div class="logo">GR <span>Consórcio</span> <span style="font-size:14px;color:var(--gray-light);font-family:'Barlow',sans-serif;font-weight:600;letter-spacing:.05em">· Ranking</span></div>
+  <div class="header-right">
+    <div class="conn-badge"><div class="conn-dot" id="connDot"></div><span id="connText">Conectando...</span></div>
+    <button class="btn btn-add" onclick="openAddModal()">+ Vendedor</button>
+    <button class="btn btn-reset" onclick="confirmReset()">↺ Zerar Semana</button>
+    <button class="btn btn-config" onclick="reconfig()" title="Reconfigurar Firebase">⚙️</button>
+  </div>
+</header>
+
+<div class="week-nav">
+  <div class="week-nav-left">
+    <button class="week-arrow" id="btnPrevWeek" onclick="goWeek(-1)">‹</button>
+    <div class="week-info">
+      <div class="week-label" id="weekLabel">—</div>
+      <div class="week-dates" id="weekDates">—</div>
+    </div>
+    <button class="week-arrow" id="btnNextWeek" onclick="goWeek(1)">›</button>
+  </div>
+  <div class="week-nav-right">
+    <span id="weekStatusBadge"></span>
+    <input type="date" class="week-date-input" id="calInput" onchange="goToDate(this.value)" title="Ir para semana de uma data">
+    <button class="btn-today" onclick="goToday()">Hoje</button>
+  </div>
+</div>
+
+<div class="meta-bar">
+  <div class="meta-item"><div class="meta-dot dot-green"></div><strong>Meta atingida</strong> — 2+ cotas</div>
+  <div class="meta-item"><div class="meta-dot dot-yellow"></div><strong>Próximo</strong> — 1 cota</div>
+  <div class="meta-item"><div class="meta-dot dot-red"></div><strong>Abaixo</strong> — 0 cotas</div>
+  <div class="meta-item" style="margin-left:auto"><strong>Meta: 2 cotas/semana por vendedor</strong></div>
+</div>
+
+<div class="stats-wrap">
+  <div class="stats-bar">
+    <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Cotas na semana</div></div>
+    <div class="stat-card"><div class="stat-num" id="statVendedores">0</div><div class="stat-label">Vendedores</div></div>
+    <div class="stat-card"><div class="stat-num" id="statMeta" style="color:var(--green)">0</div><div class="stat-label">Na meta</div></div>
+    <div class="stat-card"><div class="stat-num" id="statAbaixo" style="color:var(--red)">0</div><div class="stat-label">Abaixo da meta</div></div>
+  </div>
+</div>
+
+<div class="chart-section">
+  <div class="chart-box">
+    <div class="chart-title">Evolução — últimas semanas</div>
+    <div class="chart-area"><div class="chart-bars" id="chartBars"></div></div>
+  </div>
+</div>
+
+<div class="podium-section">
+  <div class="section-title">Top 3 da Semana</div>
+  <div class="podium">
+    <div class="podium-slot p2" id="pod2"></div>
+    <div class="podium-slot p1" id="pod1"></div>
+    <div class="podium-slot p3" id="pod3"></div>
+  </div>
+</div>
+
+<div class="ranking-section">
+  <div class="ranking-header">
+    <div class="section-title" style="margin-bottom:0">Ranking Completo</div>
+    <div class="filter-group">
+      <button class="filter-btn active" onclick="setFilter('todos',this)">Todos</button>
+      <button class="filter-btn" onclick="setFilter('green',this)">✅ Meta</button>
+      <button class="filter-btn" onclick="setFilter('yellow',this)">⚠️ Próximo</button>
+      <button class="filter-btn" onclick="setFilter('red',this)">🔴 Abaixo</button>
+    </div>
+  </div>
+  <div style="height:12px"></div>
+  <div class="rank-list" id="rankList"></div>
+</div>
+
+</div><!-- /app -->
+
+<!-- MODAL VENDEDOR -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('editModal')">✕</button>
+    <div class="modal-title" id="modalTitle">Adicionar Vendedor</div>
+    <div class="avatar-preview-wrap">
+      <img id="avatarPreview" src="https://placehold.co/60x60/1A3A6B/FFFFFF?text=?" class="avatar-preview" alt="foto">
+      <div class="avatar-hint">Cole o link de uma foto (URL) ou deixe em branco para usar as iniciais do nome</div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Foto (URL)</label>
+      <input type="url" class="modal-input" id="inputFoto" placeholder="https://..." oninput="previewAvatar(this.value)">
+    </div>
+    <div class="modal-row">
+      <div class="modal-field">
+        <label class="modal-label">Nome *</label>
+        <input type="text" class="modal-input" id="inputNome" placeholder="Ex: João Silva">
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Equipe</label>
+        <input type="text" class="modal-input" id="inputEquipe" placeholder="Ex: Time A">
+      </div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Vendas nesta semana</label>
+      <input type="number" class="modal-input" id="inputVendas" placeholder="0" min="0">
+    </div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal('editModal')">Cancelar</button>
+      <button class="modal-save" onclick="saveVendedor()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAR RESET -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="confirm-modal">
+    <h3>Zerar a semana?</h3>
+    <p>As vendas desta semana serão zeradas. Os dados da semana atual ficam salvos no histórico antes de zerar. Os vendedores são mantidos.</p>
+    <div class="confirm-btns">
+      <button class="btn-cancel-plain" onclick="closeModal('confirmModal')">Cancelar</button>
+      <button class="btn-danger" onclick="doReset()">Zerar agora</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAR DELETE -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="confirm-modal">
+    <h3>Remover vendedor?</h3>
+    <p id="deleteMsg">Deseja remover este vendedor do ranking?</p>
+    <div class="confirm-btns">
+      <button class="btn-cancel-plain" onclick="closeModal('deleteModal')">Cancelar</button>
+      <button class="btn-danger" onclick="doDelete()">Remover</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  CONFIGURAÇÃO FIREBASE
+// ═══════════════════════════════════════════════════
+const CFG_KEY = 'gr_firebase_config';
+let db = null;
+let demoMode = false;
+
+function saveConfig(){
+  const cfg = {
+    apiKey:            document.getElementById('cfgApiKey').value.trim(),
+    authDomain:        document.getElementById('cfgAuthDomain').value.trim(),
+    databaseURL:       document.getElementById('cfgDbUrl').value.trim(),
+    projectId:         document.getElementById('cfgProjectId').value.trim(),
+  };
+  if(!cfg.apiKey||!cfg.databaseURL){showToast('Preencha pelo menos API Key e Database URL','t-red');return}
+  localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+  initFirebase(cfg);
+}
+
+function useDemoMode(){
+  demoMode = true;
+  document.getElementById('setupScreen').classList.add('hidden');
+  document.getElementById('app').style.display='block';
+  document.getElementById('connDot').classList.add('online');
+  document.getElementById('connText').textContent='Modo demo (local)';
+  initWeek();
+  loadVendedoresDemo();
+}
+
+function reconfig(){
+  localStorage.removeItem(CFG_KEY);
+  location.reload();
+}
+
+function initFirebase(cfg){
+  document.getElementById('setupScreen').classList.add('hidden');
+  document.getElementById('loadingScreen').classList.remove('hidden');
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(cfg);
+    db = firebase.database();
+    db.ref('.info/connected').on('value', snap=>{
+      const online = snap.val()===true;
+      document.getElementById('connDot').className='conn-dot '+(online?'online':'offline');
+      document.getElementById('connText').textContent = online?'Firebase conectado':'Sem conexão';
+    });
+    document.getElementById('loadingScreen').classList.add('hidden');
+    document.getElementById('app').style.display='block';
+    initWeek();
+    listenVendedores();
+    listenWeekHistory();
+  }catch(e){
+    document.getElementById('loadingScreen').classList.add('hidden');
+    document.getElementById('setupScreen').classList.remove('hidden');
+    showToast('Erro ao conectar: '+e.message,'t-red');
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  SEMANAS
+// ═══════════════════════════════════════════════════
+const META = 2;
+let currentWeekKey = '';
+let todayWeekKey   = '';
+let weekHistory    = {}; // { weekKey: { totalCotas: N } }
+let vendedores     = {}; // { id: {nome,equipe,foto} }
+let vendasSemana   = {}; // { id: N } para a semana atual
+let currentFilter  = 'todos';
+let editingId      = null;
+let deletingId     = null;
+let nextDemoId     = 100;
+
+// Retorna "YYYY-WNN" para qualquer Date (semana ISO simplificada: segunda a domingo)
+function getWeekKey(date){
+  const d = new Date(date);
+  d.setHours(0,0,0,0);
+  // Ajusta para segunda-feira
+  const day = d.getDay()||7;
+  d.setDate(d.getDate()-day+1);
+  const jan4 = new Date(d.getFullYear(),0,4);
+  const weekNum = Math.ceil(((d-jan4)/86400000+jan4.getDay()+1)/7);
+  return d.getFullYear()+'-W'+String(weekNum).padStart(2,'0');
+}
+
+function getWeekBounds(weekKey){
+  const [year,wStr] = weekKey.split('-W');
+  const w = parseInt(wStr);
+  // Encontra a segunda-feira da semana ISO w
+  const jan4 = new Date(parseInt(year),0,4);
+  const jan4Day = jan4.getDay()||7;
+  const monday = new Date(jan4);
+  monday.setDate(jan4.getDate()-(jan4Day-1)+(w-1)*7);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate()+6);
+  return {monday, sunday};
+}
+
+function formatDate(d){
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+}
+
+function initWeek(){
+  todayWeekKey   = getWeekKey(new Date());
+  currentWeekKey = todayWeekKey;
+  document.getElementById('calInput').value = new Date().toISOString().split('T')[0];
+  updateWeekUI();
+}
+
+function updateWeekUI(){
+  const {monday,sunday} = getWeekBounds(currentWeekKey);
+  const [year,wStr] = currentWeekKey.split('-W');
+  document.getElementById('weekLabel').textContent  = `Semana ${wStr} · ${year}`;
+  document.getElementById('weekDates').textContent  = `${formatDate(monday)} — ${formatDate(sunday)}`;
+  const isCurrent = currentWeekKey === todayWeekKey;
+  const badge = document.getElementById('weekStatusBadge');
+  badge.innerHTML = isCurrent
+    ? '<span class="week-current-badge">● Semana atual</span>'
+    : '<span class="week-past-badge">📅 Semana passada</span>';
+  document.getElementById('btnNextWeek').disabled = isCurrent;
+  // Atualiza readonly das vendas
+  renderAll();
+}
+
+function goWeek(delta){
+  const {monday} = getWeekBounds(currentWeekKey);
+  monday.setDate(monday.getDate()+delta*7);
+  currentWeekKey = getWeekKey(monday);
+  document.getElementById('calInput').value = monday.toISOString().split('T')[0];
+  loadWeekVendas();
+  updateWeekUI();
+}
+
+function goToDate(val){
+  if(!val) return;
+  currentWeekKey = getWeekKey(new Date(val+'T12:00:00'));
+  loadWeekVendas();
+  updateWeekUI();
+}
+
+function goToday(){
+  currentWeekKey = todayWeekKey;
+  document.getElementById('calInput').value = new Date().toISOString().split('T')[0];
+  loadWeekVendas();
+  updateWeekUI();
+}
+
+// ═══════════════════════════════════════════════════
+//  FIREBASE — VENDEDORES (cadastro permanente)
+// ═══════════════════════════════════════════════════
+function listenVendedores(){
+  db.ref('gr_ranking/vendedores').on('value', snap=>{
+    vendedores = snap.val() || {};
+    loadWeekVendas();
+  });
+}
+
+function listenWeekHistory(){
+  db.ref('gr_ranking/semanas').on('value', snap=>{
+    const data = snap.val() || {};
+    weekHistory = {};
+    Object.entries(data).forEach(([wk, wData])=>{
+      if(wData && wData.vendas){
+        const total = Object.values(wData.vendas).reduce((s,v)=>s+(v||0),0);
+        weekHistory[wk] = {totalCotas: total};
+      }
+    });
+    renderChart();
+  });
+}
+
+function loadWeekVendas(){
+  if(demoMode){renderAll();return}
+  db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas`).once('value', snap=>{
+    vendasSemana = snap.val() || {};
+    renderAll();
+  });
+}
+
+// ═══════════════════════════════════════════════════
+//  DEMO MODE (localStorage)
+// ═══════════════════════════════════════════════════
+function loadVendedoresDemo(){
+  const saved = localStorage.getItem('gr_demo_vendedores');
+  vendedores = saved ? JSON.parse(saved) : {
+    '1':{nome:'Ana Souza',equipe:'Time A',foto:''},
+    '2':{nome:'Bruno Lima',equipe:'Time B',foto:''},
+    '3':{nome:'Carlos Melo',equipe:'Time A',foto:''},
+    '4':{nome:'Diana Costa',equipe:'Time B',foto:''},
+    '5':{nome:'Eduardo Reis',equipe:'Time A',foto:''},
+  };
+  const savedVendas = localStorage.getItem('gr_demo_vendas_'+currentWeekKey);
+  vendasSemana = savedVendas ? JSON.parse(savedVendas) : {};
+  loadDemoHistory();
+  renderAll();
+}
+
+function loadDemoHistory(){
+  weekHistory = {};
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(k && k.startsWith('gr_demo_vendas_')){
+      const wk = k.replace('gr_demo_vendas_','');
+      const data = JSON.parse(localStorage.getItem(k)||'{}');
+      const total = Object.values(data).reduce((s,v)=>s+(v||0),0);
+      weekHistory[wk]={totalCotas:total};
+    }
+  }
+}
+
+function saveDemoVendas(){
+  localStorage.setItem('gr_demo_vendedores', JSON.stringify(vendedores));
+  localStorage.setItem('gr_demo_vendas_'+currentWeekKey, JSON.stringify(vendasSemana));
+  loadDemoHistory();
+  renderChart();
+}
+
+// ═══════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════
+const isCurrent = ()=> currentWeekKey === todayWeekKey;
+
+function getStatus(vendas){
+  if(vendas>=META) return 'green';
+  if(vendas>=1)    return 'yellow';
+  return 'red';
+}
+
+function getStatusBadge(vendas){
+  const s=getStatus(vendas);
+  const labels={green:'✅ Na meta',yellow:'⚠️ Próximo',red:'🔴 Abaixo'};
+  return `<span class="status-badge badge-${s}">${labels[s]}</span>`;
+}
+
+function getAvatarUrl(id, v){
+  if(v.foto && v.foto.trim()) return v.foto.trim();
+  const initials=(v.nome||'?').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  const cols=['1A3A6B','2563B0','1E4D8C','0D2E5A','163660','0C2848'];
+  const c=cols[parseInt(id)%cols.length||0];
+  return `https://placehold.co/64x64/${c}/FFFFFF?text=${encodeURIComponent(initials)}`;
+}
+
+function getSortedVendedores(){
+  return Object.entries(vendedores)
+    .map(([id,v])=>({id, ...v, vendas: vendasSemana[id]||0}))
+    .sort((a,b)=>b.vendas-a.vendas||(a.nome||'').localeCompare(b.nome||''));
+}
+
+function getFiltered(){
+  const all=getSortedVendedores();
+  if(currentFilter==='todos') return all;
+  return all.filter(v=>getStatus(v.vendas)===currentFilter);
+}
+
+// ═══════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════
+function renderAll(){renderStats();renderPodium();renderRanking();renderChart();}
+
+function renderStats(){
+  const all=getSortedVendedores();
+  const total=all.reduce((s,v)=>s+v.vendas,0);
+  document.getElementById('statTotal').textContent=total;
+  document.getElementById('statVendedores').textContent=all.length;
+  document.getElementById('statMeta').textContent=all.filter(v=>v.vendas>=META).length;
+  document.getElementById('statAbaixo').textContent=all.filter(v=>v.vendas<META).length;
+}
+
+function renderPodium(){
+  const sorted=getSortedVendedores();
+  const slots=[
+    {el:'pod1',data:sorted[0],medal:'🥇',cls:'p1'},
+    {el:'pod2',data:sorted[1],medal:'🥈',cls:'p2'},
+    {el:'pod3',data:sorted[2],medal:'🥉',cls:'p3'},
+  ];
+  slots.forEach((s,i)=>{
+    const el=document.getElementById(s.el);
+    if(!s.data||Object.keys(vendedores).length===0){el.innerHTML='';return}
+    const v=s.data;
+    el.innerHTML=`
+      <div class="podium-card">
+        <div class="podium-medal">${s.medal}</div>
+        <img class="podium-avatar" src="${getAvatarUrl(v.id,v)}" alt="${v.nome}" onerror="this.src='https://placehold.co/58x58/1A3A6B/FFFFFF?text=${(v.nome||'?')[0]}'">
+        <div class="podium-name">${v.nome||'—'}</div>
+        <div class="podium-team">${v.equipe||'—'}</div>
+        <div class="podium-sales">${v.vendas}</div>
+        <div class="podium-label">cota${v.vendas!==1?'s':''}</div>
+      </div>
+      <div class="podium-block"></div>
+      <div class="podium-pos">#${i===0?1:i===1?2:3}</div>`;
+  });
+}
+
+function renderRanking(){
+  const list=document.getElementById('rankList');
+  const filtered=getFiltered();
+  const sorted=getSortedVendedores();
+  const readonly=!isCurrent();
+
+  let html='';
+  if(readonly) html+=`<div class="readonly-notice">📅 Semana passada — somente leitura. Edições só na semana atual.</div>`;
+
+  if(filtered.length===0){
+    list.innerHTML=html+`<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-text">Nenhum vendedor encontrado</div><div class="empty-sub">Adicione vendedores ou ajuste o filtro</div></div>`;
+    return;
+  }
+
+  html+=filtered.map(v=>{
+    const pos=sorted.findIndex(x=>x.id===v.id)+1;
+    const status=getStatus(v.vendas);
+    const prog=Math.min((v.vendas/META)*100,100);
+    const actions=readonly?'':`
+      <div class="rank-actions">
+        <div class="action-row">
+          <button class="act-btn plus" onclick="changeVendas('${v.id}',1)" title="+1 cota">+</button>
+          <button class="act-btn minus" onclick="changeVendas('${v.id}',-1)" title="-1 cota">−</button>
+        </div>
+        <div class="action-row">
+          <button class="act-btn edit-btn" onclick="openEditModal('${v.id}')" title="Editar">✏️</button>
+          <button class="act-btn del-btn" onclick="confirmDelete('${v.id}')" title="Remover">🗑️</button>
+        </div>
+      </div>`;
+    return`<div class="rank-card status-${status}${readonly?' readonly':''}">
+      <div class="rank-pos">${pos}</div>
+      <img class="rank-avatar" src="${getAvatarUrl(v.id,v)}" alt="${v.nome}" onerror="this.src='https://placehold.co/46x46/1A3A6B/FFFFFF?text=${(v.nome||'?')[0]}'">
+      <div>
+        <div class="rank-name">${v.nome||'—'} ${getStatusBadge(v.vendas)}</div>
+        <div class="rank-team">${v.equipe||'Sem equipe'}</div>
+        <div class="rank-progress">
+          <div class="progress-bar"><div class="progress-fill" style="width:${prog}%"></div></div>
+          <div class="progress-text">${v.vendas}/${META}</div>
+        </div>
+      </div>
+      <div class="rank-sales-block">
+        <div class="rank-sales-num">${v.vendas}</div>
+        <div class="rank-sales-label">cotas</div>
+      </div>
+      ${actions}
+    </div>`;
+  }).join('');
+  list.innerHTML=html;
+}
+
+function renderChart(){
+  const el=document.getElementById('chartBars');
+  if(!el) return;
+  // Pega últimas 10 semanas com dados + semana atual
+  const allKeys=[...new Set([...Object.keys(weekHistory), currentWeekKey, todayWeekKey])].sort();
+  const show=allKeys.slice(-10);
+  if(show.length===0){el.innerHTML='<div style="color:var(--gray-light);font-size:13px;padding:20px">Nenhum histórico ainda.</div>';return}
+  const maxVal=Math.max(...show.map(wk=>weekHistory[wk]?.totalCotas||0),1);
+
+  el.innerHTML=show.map(wk=>{
+    const total=weekHistory[wk]?.totalCotas||0;
+    const pct=Math.max((total/maxVal)*100,3);
+    const [,wStr]=wk.split('-W');
+    const active=wk===currentWeekKey?'active':'';
+    return`<div class="chart-week ${active}" onclick="goToWeekKey('${wk}')">
+      <div class="chart-num">${total}</div>
+      <div class="chart-bar-wrap"><div class="chart-bar" style="height:${pct}%"></div></div>
+      <div class="chart-week-label">Sem ${wStr}</div>
+    </div>`;
+  }).join('');
+}
+
+function goToWeekKey(wk){
+  currentWeekKey=wk;
+  const {monday}=getWeekBounds(wk);
+  document.getElementById('calInput').value=monday.toISOString().split('T')[0];
+  loadWeekVendas();
+  updateWeekUI();
+}
+
+// ═══════════════════════════════════════════════════
+//  AÇÕES
+// ═══════════════════════════════════════════════════
+function changeVendas(id, delta){
+  if(!isCurrent()) return;
+  const cur=vendasSemana[id]||0;
+  const novo=Math.max(0,cur+delta);
+  vendasSemana[id]=novo;
+  const v=vendedores[id];
+  if(demoMode){
+    saveDemoVendas();
+    renderAll();
+  } else {
+    db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas/${id}`).set(novo);
+    renderAll();
+  }
+  showToast(delta>0?`+1 cota para ${v?.nome||''} 🎉`:`−1 cota para ${v?.nome||''}`,(delta>0?'t-green':'t-red'));
+}
+
+// ═══════════════════════════════════════════════════
+//  MODAL VENDEDOR
+// ═══════════════════════════════════════════════════
+function openAddModal(){
+  editingId=null;
+  document.getElementById('modalTitle').textContent='Adicionar Vendedor';
+  document.getElementById('inputNome').value='';
+  document.getElementById('inputEquipe').value='';
+  document.getElementById('inputFoto').value='';
+  document.getElementById('inputVendas').value='0';
+  document.getElementById('avatarPreview').src='https://placehold.co/60x60/1A3A6B/FFFFFF?text=?';
+  document.getElementById('editModal').classList.add('open');
+  setTimeout(()=>document.getElementById('inputNome').focus(),100);
+}
+
+function openEditModal(id){
+  const v=vendedores[id];
+  if(!v) return;
+  editingId=id;
+  document.getElementById('modalTitle').textContent='Editar Vendedor';
+  document.getElementById('inputNome').value=v.nome||'';
+  document.getElementById('inputEquipe').value=v.equipe||'';
+  document.getElementById('inputFoto').value=v.foto||'';
+  document.getElementById('inputVendas').value=vendasSemana[id]||0;
+  document.getElementById('avatarPreview').src=getAvatarUrl(id,v);
+  document.getElementById('editModal').classList.add('open');
+}
+
+function previewAvatar(url){
+  document.getElementById('avatarPreview').src=url&&url.trim()?url.trim():'https://placehold.co/60x60/1A3A6B/FFFFFF?text=?';
+}
+
+function saveVendedor(){
+  const nome=document.getElementById('inputNome').value.trim();
+  if(!nome){showToast('Nome é obrigatório','t-red');return}
+  const equipe=document.getElementById('inputEquipe').value.trim();
+  const foto=document.getElementById('inputFoto').value.trim();
+  const vendas=Math.max(0,parseInt(document.getElementById('inputVendas').value)||0);
+
+  if(editingId){
+    const vData={nome,equipe,foto};
+    if(demoMode){
+      vendedores[editingId]=vData;
+      vendasSemana[editingId]=vendas;
+      saveDemoVendas();
+      renderAll();
+    } else {
+      db.ref(`gr_ranking/vendedores/${editingId}`).set(vData);
+      db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas/${editingId}`).set(vendas);
+    }
+    showToast(`${nome} atualizado ✅`,'t-green');
+  } else {
+    const newId=demoMode?String(nextDemoId++):db.ref('gr_ranking/vendedores').push().key;
+    const vData={nome,equipe,foto};
+    if(demoMode){
+      vendedores[newId]=vData;
+      if(vendas>0) vendasSemana[newId]=vendas;
+      saveDemoVendas();
+      renderAll();
+    } else {
+      db.ref(`gr_ranking/vendedores/${newId}`).set(vData);
+      if(vendas>0) db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas/${newId}`).set(vendas);
+    }
+    showToast(`${nome} adicionado! 🎉`,'t-green');
+  }
+  closeModal('editModal');
+}
+
+// ═══════════════════════════════════════════════════
+//  DELETE
+// ═══════════════════════════════════════════════════
+function confirmDelete(id){
+  deletingId=id;
+  const v=vendedores[id];
+  document.getElementById('deleteMsg').textContent=`Deseja remover "${v?.nome||'este vendedor'}" do ranking?`;
+  document.getElementById('deleteModal').classList.add('open');
+}
+
+function doDelete(){
+  const v=vendedores[deletingId];
+  if(demoMode){
+    delete vendedores[deletingId];
+    delete vendasSemana[deletingId];
+    saveDemoVendas();
+    renderAll();
+  } else {
+    db.ref(`gr_ranking/vendedores/${deletingId}`).remove();
+  }
+  closeModal('deleteModal');
+  showToast(`${v?.nome||'Vendedor'} removido`,'t-red');
+}
+
+// ═══════════════════════════════════════════════════
+//  RESET SEMANA
+// ═══════════════════════════════════════════════════
+function confirmReset(){
+  if(!isCurrent()){showToast('Só é possível zerar a semana atual','t-red');return}
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+function doReset(){
+  vendasSemana={};
+  if(demoMode){
+    saveDemoVendas();
+    renderAll();
+  } else {
+    db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas`).set({});
+  }
+  closeModal('confirmModal');
+  showToast('Semana zerada! Bora vender 💪','t-green');
+}
+
+// ═══════════════════════════════════════════════════
+//  FILTROS / UTIL
+// ═══════════════════════════════════════════════════
+function setFilter(f,btn){
+  currentFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderRanking();
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+
+let toastTimer;
+function showToast(msg,type='t-blue'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast '+type;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ═══════════════════════════════════════════════════
+//  KEYBOARD
+// ═══════════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    ['editModal','confirmModal','deleteModal'].forEach(id=>closeModal(id));
+  }
+  if(e.key==='Enter'&&document.getElementById('editModal').classList.contains('open')) saveVendedor();
+});
+
+// ═══════════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════════
+(function boot(){
+  const saved=localStorage.getItem(CFG_KEY);
+  if(saved){
+    try{
+      const cfg=JSON.parse(saved);
+      document.getElementById('cfgApiKey').value=cfg.apiKey||'';
+      document.getElementById('cfgAuthDomain').value=cfg.authDomain||'';
+      document.getElementById('cfgDbUrl').value=cfg.databaseURL||'';
+      document.getElementById('cfgProjectId').value=cfg.projectId||'';
+      initFirebase(cfg);
+    }catch(e){document.getElementById('setupScreen').classList.remove('hidden')}
+  }
+})();
+</script>
+</body>
+</html>
