@@ -22,23 +22,6 @@ html{scroll-behavior:smooth}
 body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;overflow-x:hidden}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(26,58,107,.35) 0%,transparent 60%);pointer-events:none;z-index:0}
 
-/* SETUP SCREEN */
-#setupScreen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
-#setupScreen.hidden{display:none}
-.setup-box{background:var(--surface);border:1px solid rgba(59,130,212,.3);padding:48px 40px;width:100%;max-width:520px;position:relative}
-.setup-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--blue-accent))}
-.setup-logo{font-family:'Bebas Neue',sans-serif;font-size:32px;margin-bottom:4px}
-.setup-logo span{color:var(--blue-accent)}
-.setup-sub{font-size:13px;color:var(--gray-light);margin-bottom:32px}
-.setup-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-light);margin-bottom:7px;display:block}
-.setup-input{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--white);padding:13px 16px;font-family:'Barlow',sans-serif;font-size:14px;outline:none;margin-bottom:14px;transition:all .2s}
-.setup-input:focus{border-color:var(--blue-accent);background:rgba(59,130,212,.07)}
-.setup-input::placeholder{color:rgba(255,255,255,.2)}
-.setup-hint{font-size:12px;color:var(--gray-light);background:rgba(59,130,212,.08);border:1px solid rgba(59,130,212,.15);padding:12px 16px;margin-bottom:24px;line-height:1.6}
-.setup-hint code{color:var(--blue-light);font-size:11px}
-.setup-btn{width:100%;background:var(--blue-mid);color:var(--white);border:none;padding:16px;font-family:'Barlow',sans-serif;font-size:15px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s}
-.setup-btn:hover{background:var(--blue-accent)}
-
 /* LOADING */
 #loadingScreen{position:fixed;inset:0;background:var(--bg);z-index:9998;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px}
 #loadingScreen.hidden{display:none}
@@ -46,7 +29,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{font-size:14px;color:var(--gray-light);letter-spacing:.1em;text-transform:uppercase}
 
-/* CONNECTION STATUS */
+/* CONNECTION */
 .conn-dot{width:8px;height:8px;border-radius:50%;background:var(--gray);display:inline-block;margin-right:6px;transition:background .3s}
 .conn-dot.online{background:var(--green);box-shadow:0 0 6px rgba(34,197,94,.5)}
 .conn-dot.offline{background:var(--red)}
@@ -60,19 +43,17 @@ header{position:relative;z-index:10;padding:24px 5vw 0;display:flex;align-items:
 .btn{padding:9px 18px;font-family:'Barlow',sans-serif;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border:none;transition:all .2s}
 .btn-add{background:var(--blue-mid);color:var(--white)}
 .btn-add:hover{background:var(--blue-accent)}
-.btn-config{background:rgba(255,255,255,.05);color:var(--gray-light);border:1px solid rgba(255,255,255,.08)}
-.btn-config:hover{border-color:var(--blue-accent);color:var(--blue-accent)}
 .btn-reset{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25)}
 .btn-reset:hover{background:rgba(239,68,68,.22)}
 
-/* WEEK NAVIGATOR */
+/* WEEK NAV */
 .week-nav{position:relative;z-index:10;margin:20px 5vw 0;background:var(--surface);border:1px solid rgba(59,130,212,.15);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
 .week-nav-left{display:flex;align-items:center;gap:12px}
 .week-arrow{width:36px;height:36px;background:rgba(59,130,212,.08);border:1px solid rgba(59,130,212,.2);color:var(--blue-accent);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-family:monospace}
 .week-arrow:hover{background:rgba(59,130,212,.18);border-color:var(--blue-accent)}
 .week-arrow:disabled{opacity:.3;cursor:not-allowed}
 .week-info{text-align:center}
-.week-label{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.05em;color:var(--white)}
+.week-label{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.05em}
 .week-dates{font-size:12px;color:var(--gray-light);margin-top:2px}
 .week-current-badge{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--green);background:var(--green-dim);border:1px solid rgba(34,197,94,.3);padding:3px 10px}
 .week-past-badge{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--yellow);background:var(--yellow-dim);border:1px solid rgba(234,179,8,.3);padding:3px 10px}
@@ -83,7 +64,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.
 .btn-today{background:rgba(59,130,212,.12);color:var(--blue-accent);border:1px solid rgba(59,130,212,.3);padding:8px 14px;font-family:'Barlow',sans-serif;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s}
 .btn-today:hover{background:rgba(59,130,212,.22)}
 
-/* META BAR */
+/* META */
 .meta-bar{position:relative;z-index:10;margin:8px 5vw 0;padding:12px 24px;background:var(--surface2);border:1px solid rgba(255,255,255,.04);display:flex;align-items:center;gap:28px;flex-wrap:wrap}
 .meta-item{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--gray-light)}
 .meta-dot{width:8px;height:8px;border-radius:50%}
@@ -159,7 +140,6 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.
 .rank-card.status-yellow{background:linear-gradient(90deg,var(--yellow-dim) 0%,var(--surface) 35%)}
 .rank-card.status-red{background:linear-gradient(90deg,var(--red-dim) 0%,var(--surface) 35%)}
 .rank-card:hover{border-color:rgba(59,130,212,.2);transform:translateX(3px)}
-.rank-card.readonly{pointer-events:none}
 .rank-pos{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gray);text-align:center;line-height:1}
 .rank-avatar{width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid var(--gray)}
 .status-green .rank-avatar{border-color:var(--green)}
@@ -229,8 +209,6 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.
 .empty-icon{font-size:40px;margin-bottom:12px}
 .empty-text{font-size:15px;margin-bottom:6px}
 .empty-sub{font-size:12px;opacity:.6}
-
-/* TOAST */
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid rgba(59,130,212,.3);padding:11px 22px;font-size:13px;font-weight:700;z-index:2000;transition:transform .3s;white-space:nowrap}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .toast.t-green{border-color:rgba(34,197,94,.4);color:var(--green)}
@@ -257,37 +235,11 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.
 </head>
 <body>
 
-<!-- SETUP SCREEN -->
-<div id="setupScreen">
-  <div class="setup-box">
-    <div class="setup-logo">GR <span>Consórcio</span></div>
-    <div class="setup-sub">Configure a conexão com o Firebase para começar</div>
-    <div class="setup-hint">
-      Acesse <strong>console.firebase.google.com</strong> → seu projeto → <strong>Configurações do projeto</strong> → role até <strong>"Seus aplicativos"</strong> e copie os valores abaixo.<br><br>
-      <code>Banco de Dados → Realtime Database → copie a URL (ex: https://seu-projeto-default-rtdb.firebaseio.com)</code>
-    </div>
-    <label class="setup-label">API Key</label>
-    <input class="setup-input" id="cfgApiKey" placeholder="AIzaSy...">
-    <label class="setup-label">Auth Domain</label>
-    <input class="setup-input" id="cfgAuthDomain" placeholder="seu-projeto.firebaseapp.com">
-    <label class="setup-label">Database URL</label>
-    <input class="setup-input" id="cfgDbUrl" placeholder="https://seu-projeto-default-rtdb.firebaseio.com">
-    <label class="setup-label">Project ID</label>
-    <input class="setup-input" id="cfgProjectId" placeholder="seu-projeto">
-    <button class="setup-btn" onclick="saveConfig()">Conectar ao Firebase →</button>
-    <div style="margin-top:14px;text-align:center">
-      <button onclick="useDemoMode()" style="background:none;border:none;color:var(--gray-light);font-size:12px;cursor:pointer;text-decoration:underline;font-family:'Barlow',sans-serif">Usar modo demonstração (sem Firebase)</button>
-    </div>
-  </div>
-</div>
-
-<!-- LOADING -->
-<div id="loadingScreen" class="hidden">
+<div id="loadingScreen">
   <div class="spinner"></div>
-  <div class="loading-text">Conectando ao Firebase...</div>
+  <div class="loading-text">Carregando ranking...</div>
 </div>
 
-<!-- APP -->
 <div id="app" style="display:none">
 
 <header>
@@ -296,7 +248,6 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.
     <div class="conn-badge"><div class="conn-dot" id="connDot"></div><span id="connText">Conectando...</span></div>
     <button class="btn btn-add" onclick="openAddModal()">+ Vendedor</button>
     <button class="btn btn-reset" onclick="confirmReset()">↺ Zerar Semana</button>
-    <button class="btn btn-config" onclick="reconfig()" title="Reconfigurar Firebase">⚙️</button>
   </div>
 </header>
 
@@ -320,7 +271,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.
   <div class="meta-item"><div class="meta-dot dot-green"></div><strong>Meta atingida</strong> — 2+ cotas</div>
   <div class="meta-item"><div class="meta-dot dot-yellow"></div><strong>Próximo</strong> — 1 cota</div>
   <div class="meta-item"><div class="meta-dot dot-red"></div><strong>Abaixo</strong> — 0 cotas</div>
-  <div class="meta-item" style="margin-left:auto"><strong>Meta: 2 cotas/semana por vendedor</strong></div>
+  <div class="meta-item" style="margin-left:auto"><strong>Meta: 2 cotas/semana</strong></div>
 </div>
 
 <div class="stats-wrap">
@@ -371,7 +322,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.
     <div class="modal-title" id="modalTitle">Adicionar Vendedor</div>
     <div class="avatar-preview-wrap">
       <img id="avatarPreview" src="https://placehold.co/60x60/1A3A6B/FFFFFF?text=?" class="avatar-preview" alt="foto">
-      <div class="avatar-hint">Cole o link de uma foto (URL) ou deixe em branco para usar as iniciais do nome</div>
+      <div class="avatar-hint">Cole o link de uma foto (URL) ou deixe em branco para usar as iniciais</div>
     </div>
     <div class="modal-field">
       <label class="modal-label">Foto (URL)</label>
@@ -398,11 +349,11 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.
   </div>
 </div>
 
-<!-- MODAL CONFIRMAR RESET -->
+<!-- MODAL RESET -->
 <div class="modal-overlay" id="confirmModal">
   <div class="confirm-modal">
     <h3>Zerar a semana?</h3>
-    <p>As vendas desta semana serão zeradas. Os dados da semana atual ficam salvos no histórico antes de zerar. Os vendedores são mantidos.</p>
+    <p>As vendas desta semana serão zeradas e o histórico ficará salvo no Firebase. Os vendedores são mantidos.</p>
     <div class="confirm-btns">
       <button class="btn-cancel-plain" onclick="closeModal('confirmModal')">Cancelar</button>
       <button class="btn-danger" onclick="doReset()">Zerar agora</button>
@@ -410,7 +361,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.
   </div>
 </div>
 
-<!-- MODAL CONFIRMAR DELETE -->
+<!-- MODAL DELETE -->
 <div class="modal-overlay" id="deleteModal">
   <div class="confirm-modal">
     <h3>Remover vendedor?</h3>
@@ -425,169 +376,113 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════════════════
-//  CONFIGURAÇÃO FIREBASE
-// ═══════════════════════════════════════════════════
-const CFG_KEY = 'gr_firebase_config';
-let db = null;
-let demoMode = false;
+// ═══════════════════════════════════════
+//  FIREBASE — CREDENCIAIS
+// ═══════════════════════════════════════
+const firebaseConfig = {
+  apiKey:            "AIzaSyCElgJjnPc-sKO5TazZaT7yTkCRqyw5YE4",
+  authDomain:        "cotasgr-b099b.firebaseapp.com",
+  databaseURL:       "https://cotasgr-b099b-default-rtdb.firebaseio.com",
+  projectId:         "cotasgr-b099b",
+  storageBucket:     "cotasgr-b099b.firebasestorage.app",
+  messagingSenderId: "655926699922",
+  appId:             "1:655926699922:web:caf8a6851138d1486cc34b"
+};
 
-function saveConfig(){
-  const cfg = {
-    apiKey:            document.getElementById('cfgApiKey').value.trim(),
-    authDomain:        document.getElementById('cfgAuthDomain').value.trim(),
-    databaseURL:       document.getElementById('cfgDbUrl').value.trim(),
-    projectId:         document.getElementById('cfgProjectId').value.trim(),
-  };
-  if(!cfg.apiKey||!cfg.databaseURL){showToast('Preencha pelo menos API Key e Database URL','t-red');return}
-  localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
-  initFirebase(cfg);
-}
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-function useDemoMode(){
-  demoMode = true;
-  document.getElementById('setupScreen').classList.add('hidden');
-  document.getElementById('app').style.display='block';
-  document.getElementById('connDot').classList.add('online');
-  document.getElementById('connText').textContent='Modo demo (local)';
-  initWeek();
-  loadVendedoresDemo();
-}
-
-function reconfig(){
-  localStorage.removeItem(CFG_KEY);
-  location.reload();
-}
-
-function initFirebase(cfg){
-  document.getElementById('setupScreen').classList.add('hidden');
-  document.getElementById('loadingScreen').classList.remove('hidden');
-  try{
-    if(!firebase.apps.length) firebase.initializeApp(cfg);
-    db = firebase.database();
-    db.ref('.info/connected').on('value', snap=>{
-      const online = snap.val()===true;
-      document.getElementById('connDot').className='conn-dot '+(online?'online':'offline');
-      document.getElementById('connText').textContent = online?'Firebase conectado':'Sem conexão';
-    });
-    document.getElementById('loadingScreen').classList.add('hidden');
-    document.getElementById('app').style.display='block';
-    initWeek();
-    listenVendedores();
-    listenWeekHistory();
-  }catch(e){
-    document.getElementById('loadingScreen').classList.add('hidden');
-    document.getElementById('setupScreen').classList.remove('hidden');
-    showToast('Erro ao conectar: '+e.message,'t-red');
-  }
-}
-
-// ═══════════════════════════════════════════════════
-//  SEMANAS
-// ═══════════════════════════════════════════════════
-const META = 2;
+// ═══════════════════════════════════════
+//  ESTADO
+// ═══════════════════════════════════════
+const META        = 2;
 let currentWeekKey = '';
 let todayWeekKey   = '';
-let weekHistory    = {}; // { weekKey: { totalCotas: N } }
-let vendedores     = {}; // { id: {nome,equipe,foto} }
-let vendasSemana   = {}; // { id: N } para a semana atual
+let weekHistory    = {};
+let vendedores     = {};
+let vendasSemana   = {};
 let currentFilter  = 'todos';
 let editingId      = null;
 let deletingId     = null;
-let nextDemoId     = 100;
 
-// Retorna "YYYY-WNN" para qualquer Date (semana ISO simplificada: segunda a domingo)
+// ═══════════════════════════════════════
+//  SEMANAS
+// ═══════════════════════════════════════
 function getWeekKey(date){
-  const d = new Date(date);
-  d.setHours(0,0,0,0);
-  // Ajusta para segunda-feira
-  const day = d.getDay()||7;
-  d.setDate(d.getDate()-day+1);
-  const jan4 = new Date(d.getFullYear(),0,4);
-  const weekNum = Math.ceil(((d-jan4)/86400000+jan4.getDay()+1)/7);
-  return d.getFullYear()+'-W'+String(weekNum).padStart(2,'0');
+  const d=new Date(date); d.setHours(0,0,0,0);
+  const day=d.getDay()||7; d.setDate(d.getDate()-day+1);
+  const jan4=new Date(d.getFullYear(),0,4);
+  const w=Math.ceil(((d-jan4)/86400000+jan4.getDay()+1)/7);
+  return d.getFullYear()+'-W'+String(w).padStart(2,'0');
 }
-
-function getWeekBounds(weekKey){
-  const [year,wStr] = weekKey.split('-W');
-  const w = parseInt(wStr);
-  // Encontra a segunda-feira da semana ISO w
-  const jan4 = new Date(parseInt(year),0,4);
-  const jan4Day = jan4.getDay()||7;
-  const monday = new Date(jan4);
-  monday.setDate(jan4.getDate()-(jan4Day-1)+(w-1)*7);
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate()+6);
-  return {monday, sunday};
+function getWeekBounds(wk){
+  const[year,wStr]=wk.split('-W'); const w=parseInt(wStr);
+  const jan4=new Date(parseInt(year),0,4); const j=jan4.getDay()||7;
+  const mon=new Date(jan4); mon.setDate(jan4.getDate()-(j-1)+(w-1)*7);
+  const sun=new Date(mon); sun.setDate(mon.getDate()+6);
+  return{monday:mon,sunday:sun};
 }
-
-function formatDate(d){
-  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
-}
+function fmt(d){return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}
 
 function initWeek(){
-  todayWeekKey   = getWeekKey(new Date());
-  currentWeekKey = todayWeekKey;
-  document.getElementById('calInput').value = new Date().toISOString().split('T')[0];
+  todayWeekKey=getWeekKey(new Date());
+  currentWeekKey=todayWeekKey;
+  document.getElementById('calInput').value=new Date().toISOString().split('T')[0];
   updateWeekUI();
 }
-
 function updateWeekUI(){
-  const {monday,sunday} = getWeekBounds(currentWeekKey);
-  const [year,wStr] = currentWeekKey.split('-W');
-  document.getElementById('weekLabel').textContent  = `Semana ${wStr} · ${year}`;
-  document.getElementById('weekDates').textContent  = `${formatDate(monday)} — ${formatDate(sunday)}`;
-  const isCurrent = currentWeekKey === todayWeekKey;
-  const badge = document.getElementById('weekStatusBadge');
-  badge.innerHTML = isCurrent
-    ? '<span class="week-current-badge">● Semana atual</span>'
-    : '<span class="week-past-badge">📅 Semana passada</span>';
-  document.getElementById('btnNextWeek').disabled = isCurrent;
-  // Atualiza readonly das vendas
+  const{monday,sunday}=getWeekBounds(currentWeekKey);
+  const[,wStr]=currentWeekKey.split('-W');
+  document.getElementById('weekLabel').textContent=`Semana ${wStr}`;
+  document.getElementById('weekDates').textContent=`${fmt(monday)} — ${fmt(sunday)}`;
+  const isCur=currentWeekKey===todayWeekKey;
+  document.getElementById('weekStatusBadge').innerHTML=isCur
+    ?'<span class="week-current-badge">● Semana atual</span>'
+    :'<span class="week-past-badge">📅 Semana passada</span>';
+  document.getElementById('btnNextWeek').disabled=isCur;
   renderAll();
 }
-
-function goWeek(delta){
-  const {monday} = getWeekBounds(currentWeekKey);
-  monday.setDate(monday.getDate()+delta*7);
-  currentWeekKey = getWeekKey(monday);
-  document.getElementById('calInput').value = monday.toISOString().split('T')[0];
+function goWeek(d){
+  const{monday}=getWeekBounds(currentWeekKey);
+  monday.setDate(monday.getDate()+d*7);
+  currentWeekKey=getWeekKey(monday);
+  document.getElementById('calInput').value=monday.toISOString().split('T')[0];
   loadWeekVendas();
-  updateWeekUI();
 }
-
-function goToDate(val){
-  if(!val) return;
-  currentWeekKey = getWeekKey(new Date(val+'T12:00:00'));
+function goToDate(v){
+  if(!v)return;
+  currentWeekKey=getWeekKey(new Date(v+'T12:00:00'));
   loadWeekVendas();
-  updateWeekUI();
 }
-
 function goToday(){
-  currentWeekKey = todayWeekKey;
-  document.getElementById('calInput').value = new Date().toISOString().split('T')[0];
+  currentWeekKey=todayWeekKey;
+  document.getElementById('calInput').value=new Date().toISOString().split('T')[0];
   loadWeekVendas();
-  updateWeekUI();
 }
 
-// ═══════════════════════════════════════════════════
-//  FIREBASE — VENDEDORES (cadastro permanente)
-// ═══════════════════════════════════════════════════
-function listenVendedores(){
-  db.ref('gr_ranking/vendedores').on('value', snap=>{
-    vendedores = snap.val() || {};
+// ═══════════════════════════════════════
+//  FIREBASE LISTENERS
+// ═══════════════════════════════════════
+function startListeners(){
+  // Conexão
+  db.ref('.info/connected').on('value',s=>{
+    const on=s.val()===true;
+    document.getElementById('connDot').className='conn-dot '+(on?'online':'offline');
+    document.getElementById('connText').textContent=on?'Firebase conectado':'Sem conexão';
+  });
+  // Vendedores (cadastro permanente)
+  db.ref('gr_ranking/vendedores').on('value',s=>{
+    vendedores=s.val()||{};
     loadWeekVendas();
   });
-}
-
-function listenWeekHistory(){
-  db.ref('gr_ranking/semanas').on('value', snap=>{
-    const data = snap.val() || {};
-    weekHistory = {};
-    Object.entries(data).forEach(([wk, wData])=>{
-      if(wData && wData.vendas){
-        const total = Object.values(wData.vendas).reduce((s,v)=>s+(v||0),0);
-        weekHistory[wk] = {totalCotas: total};
+  // Histórico de semanas para o gráfico
+  db.ref('gr_ranking/semanas').on('value',s=>{
+    const data=s.val()||{};
+    weekHistory={};
+    Object.entries(data).forEach(([wk,wd])=>{
+      if(wd&&wd.vendas){
+        const total=Object.values(wd.vendas).reduce((a,v)=>a+(v||0),0);
+        weekHistory[wk]={totalCotas:total};
       }
     });
     renderChart();
@@ -595,161 +490,97 @@ function listenWeekHistory(){
 }
 
 function loadWeekVendas(){
-  if(demoMode){renderAll();return}
-  db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas`).once('value', snap=>{
-    vendasSemana = snap.val() || {};
-    renderAll();
+  db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas`).once('value',s=>{
+    vendasSemana=s.val()||{};
+    updateWeekUI();
   });
 }
 
-// ═══════════════════════════════════════════════════
-//  DEMO MODE (localStorage)
-// ═══════════════════════════════════════════════════
-function loadVendedoresDemo(){
-  const saved = localStorage.getItem('gr_demo_vendedores');
-  vendedores = saved ? JSON.parse(saved) : {
-    '1':{nome:'Ana Souza',equipe:'Time A',foto:''},
-    '2':{nome:'Bruno Lima',equipe:'Time B',foto:''},
-    '3':{nome:'Carlos Melo',equipe:'Time A',foto:''},
-    '4':{nome:'Diana Costa',equipe:'Time B',foto:''},
-    '5':{nome:'Eduardo Reis',equipe:'Time A',foto:''},
-  };
-  const savedVendas = localStorage.getItem('gr_demo_vendas_'+currentWeekKey);
-  vendasSemana = savedVendas ? JSON.parse(savedVendas) : {};
-  loadDemoHistory();
-  renderAll();
-}
-
-function loadDemoHistory(){
-  weekHistory = {};
-  for(let i=0;i<localStorage.length;i++){
-    const k = localStorage.key(i);
-    if(k && k.startsWith('gr_demo_vendas_')){
-      const wk = k.replace('gr_demo_vendas_','');
-      const data = JSON.parse(localStorage.getItem(k)||'{}');
-      const total = Object.values(data).reduce((s,v)=>s+(v||0),0);
-      weekHistory[wk]={totalCotas:total};
-    }
-  }
-}
-
-function saveDemoVendas(){
-  localStorage.setItem('gr_demo_vendedores', JSON.stringify(vendedores));
-  localStorage.setItem('gr_demo_vendas_'+currentWeekKey, JSON.stringify(vendasSemana));
-  loadDemoHistory();
-  renderChart();
-}
-
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════
 //  HELPERS
-// ═══════════════════════════════════════════════════
-const isCurrent = ()=> currentWeekKey === todayWeekKey;
-
-function getStatus(vendas){
-  if(vendas>=META) return 'green';
-  if(vendas>=1)    return 'yellow';
-  return 'red';
+// ═══════════════════════════════════════
+const isCurrent=()=>currentWeekKey===todayWeekKey;
+function getStatus(v){return v>=META?'green':v>=1?'yellow':'red'}
+function getBadge(v){
+  const s=getStatus(v);
+  const l={green:'✅ Na meta',yellow:'⚠️ Próximo',red:'🔴 Abaixo'};
+  return`<span class="status-badge badge-${s}">${l[s]}</span>`;
 }
-
-function getStatusBadge(vendas){
-  const s=getStatus(vendas);
-  const labels={green:'✅ Na meta',yellow:'⚠️ Próximo',red:'🔴 Abaixo'};
-  return `<span class="status-badge badge-${s}">${labels[s]}</span>`;
+function getAvatar(id,v){
+  if(v.foto&&v.foto.trim())return v.foto.trim();
+  const ini=(v.nome||'?').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+  const cols=['1A3A6B','2563B0','1E4D8C','0D2E5A','163660'];
+  return`https://placehold.co/64x64/${cols[parseInt(id)%cols.length||0]}/FFFFFF?text=${encodeURIComponent(ini)}`;
 }
-
-function getAvatarUrl(id, v){
-  if(v.foto && v.foto.trim()) return v.foto.trim();
-  const initials=(v.nome||'?').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
-  const cols=['1A3A6B','2563B0','1E4D8C','0D2E5A','163660','0C2848'];
-  const c=cols[parseInt(id)%cols.length||0];
-  return `https://placehold.co/64x64/${c}/FFFFFF?text=${encodeURIComponent(initials)}`;
-}
-
-function getSortedVendedores(){
+function getSorted(){
   return Object.entries(vendedores)
-    .map(([id,v])=>({id, ...v, vendas: vendasSemana[id]||0}))
+    .map(([id,v])=>({id,...v,vendas:vendasSemana[id]||0}))
     .sort((a,b)=>b.vendas-a.vendas||(a.nome||'').localeCompare(b.nome||''));
 }
-
 function getFiltered(){
-  const all=getSortedVendedores();
-  if(currentFilter==='todos') return all;
-  return all.filter(v=>getStatus(v.vendas)===currentFilter);
+  const all=getSorted();
+  return currentFilter==='todos'?all:all.filter(v=>getStatus(v.vendas)===currentFilter);
 }
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════
 //  RENDER
-// ═══════════════════════════════════════════════════
-function renderAll(){renderStats();renderPodium();renderRanking();renderChart();}
+// ═══════════════════════════════════════
+function renderAll(){renderStats();renderPodium();renderRanking();renderChart()}
 
 function renderStats(){
-  const all=getSortedVendedores();
-  const total=all.reduce((s,v)=>s+v.vendas,0);
-  document.getElementById('statTotal').textContent=total;
+  const all=getSorted();
+  document.getElementById('statTotal').textContent=all.reduce((s,v)=>s+v.vendas,0);
   document.getElementById('statVendedores').textContent=all.length;
   document.getElementById('statMeta').textContent=all.filter(v=>v.vendas>=META).length;
   document.getElementById('statAbaixo').textContent=all.filter(v=>v.vendas<META).length;
 }
 
 function renderPodium(){
-  const sorted=getSortedVendedores();
-  const slots=[
-    {el:'pod1',data:sorted[0],medal:'🥇',cls:'p1'},
-    {el:'pod2',data:sorted[1],medal:'🥈',cls:'p2'},
-    {el:'pod3',data:sorted[2],medal:'🥉',cls:'p3'},
-  ];
-  slots.forEach((s,i)=>{
-    const el=document.getElementById(s.el);
-    if(!s.data||Object.keys(vendedores).length===0){el.innerHTML='';return}
-    const v=s.data;
-    el.innerHTML=`
-      <div class="podium-card">
-        <div class="podium-medal">${s.medal}</div>
-        <img class="podium-avatar" src="${getAvatarUrl(v.id,v)}" alt="${v.nome}" onerror="this.src='https://placehold.co/58x58/1A3A6B/FFFFFF?text=${(v.nome||'?')[0]}'">
-        <div class="podium-name">${v.nome||'—'}</div>
-        <div class="podium-team">${v.equipe||'—'}</div>
-        <div class="podium-sales">${v.vendas}</div>
-        <div class="podium-label">cota${v.vendas!==1?'s':''}</div>
-      </div>
-      <div class="podium-block"></div>
-      <div class="podium-pos">#${i===0?1:i===1?2:3}</div>`;
+  const s=getSorted();
+  [{el:'pod1',i:0,m:'🥇',c:'p1'},{el:'pod2',i:1,m:'🥈',c:'p2'},{el:'pod3',i:2,m:'🥉',c:'p3'}].forEach(({el,i,m})=>{
+    const node=document.getElementById(el);
+    const v=s[i];
+    if(!v){node.innerHTML='';return}
+    node.innerHTML=`<div class="podium-card">
+      <div class="podium-medal">${m}</div>
+      <img class="podium-avatar" src="${getAvatar(v.id,v)}" alt="${v.nome}" onerror="this.src='https://placehold.co/58x58/1A3A6B/FFFFFF?text=${(v.nome||'?')[0]}'">
+      <div class="podium-name">${v.nome||'—'}</div>
+      <div class="podium-team">${v.equipe||'—'}</div>
+      <div class="podium-sales">${v.vendas}</div>
+      <div class="podium-label">cota${v.vendas!==1?'s':''}</div>
+    </div><div class="podium-block"></div><div class="podium-pos">#${i+1}</div>`;
   });
 }
 
 function renderRanking(){
   const list=document.getElementById('rankList');
   const filtered=getFiltered();
-  const sorted=getSortedVendedores();
-  const readonly=!isCurrent();
-
-  let html='';
-  if(readonly) html+=`<div class="readonly-notice">📅 Semana passada — somente leitura. Edições só na semana atual.</div>`;
-
-  if(filtered.length===0){
-    list.innerHTML=html+`<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-text">Nenhum vendedor encontrado</div><div class="empty-sub">Adicione vendedores ou ajuste o filtro</div></div>`;
+  const sorted=getSorted();
+  const ro=!isCurrent();
+  let html=ro?'<div class="readonly-notice">📅 Semana passada — somente leitura</div>':'';
+  if(!filtered.length){
+    list.innerHTML=html+'<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-text">Nenhum vendedor encontrado</div><div class="empty-sub">Adicione vendedores ou ajuste o filtro</div></div>';
     return;
   }
-
   html+=filtered.map(v=>{
     const pos=sorted.findIndex(x=>x.id===v.id)+1;
-    const status=getStatus(v.vendas);
+    const st=getStatus(v.vendas);
     const prog=Math.min((v.vendas/META)*100,100);
-    const actions=readonly?'':`
-      <div class="rank-actions">
-        <div class="action-row">
-          <button class="act-btn plus" onclick="changeVendas('${v.id}',1)" title="+1 cota">+</button>
-          <button class="act-btn minus" onclick="changeVendas('${v.id}',-1)" title="-1 cota">−</button>
-        </div>
-        <div class="action-row">
-          <button class="act-btn edit-btn" onclick="openEditModal('${v.id}')" title="Editar">✏️</button>
-          <button class="act-btn del-btn" onclick="confirmDelete('${v.id}')" title="Remover">🗑️</button>
-        </div>
-      </div>`;
-    return`<div class="rank-card status-${status}${readonly?' readonly':''}">
+    const acts=ro?'':`<div class="rank-actions">
+      <div class="action-row">
+        <button class="act-btn plus" onclick="changeVendas('${v.id}',1)">+</button>
+        <button class="act-btn minus" onclick="changeVendas('${v.id}',-1)">−</button>
+      </div>
+      <div class="action-row">
+        <button class="act-btn edit-btn" onclick="openEditModal('${v.id}')">✏️</button>
+        <button class="act-btn del-btn" onclick="confirmDelete('${v.id}')">🗑️</button>
+      </div>
+    </div>`;
+    return`<div class="rank-card status-${st}">
       <div class="rank-pos">${pos}</div>
-      <img class="rank-avatar" src="${getAvatarUrl(v.id,v)}" alt="${v.nome}" onerror="this.src='https://placehold.co/46x46/1A3A6B/FFFFFF?text=${(v.nome||'?')[0]}'">
+      <img class="rank-avatar" src="${getAvatar(v.id,v)}" alt="${v.nome}" onerror="this.src='https://placehold.co/46x46/1A3A6B/FFFFFF?text=${(v.nome||'?')[0]}'">
       <div>
-        <div class="rank-name">${v.nome||'—'} ${getStatusBadge(v.vendas)}</div>
+        <div class="rank-name">${v.nome||'—'} ${getBadge(v.vendas)}</div>
         <div class="rank-team">${v.equipe||'Sem equipe'}</div>
         <div class="rank-progress">
           <div class="progress-bar"><div class="progress-fill" style="width:${prog}%"></div></div>
@@ -760,7 +591,7 @@ function renderRanking(){
         <div class="rank-sales-num">${v.vendas}</div>
         <div class="rank-sales-label">cotas</div>
       </div>
-      ${actions}
+      ${acts}
     </div>`;
   }).join('');
   list.innerHTML=html;
@@ -768,19 +599,15 @@ function renderRanking(){
 
 function renderChart(){
   const el=document.getElementById('chartBars');
-  if(!el) return;
-  // Pega últimas 10 semanas com dados + semana atual
-  const allKeys=[...new Set([...Object.keys(weekHistory), currentWeekKey, todayWeekKey])].sort();
-  const show=allKeys.slice(-10);
-  if(show.length===0){el.innerHTML='<div style="color:var(--gray-light);font-size:13px;padding:20px">Nenhum histórico ainda.</div>';return}
-  const maxVal=Math.max(...show.map(wk=>weekHistory[wk]?.totalCotas||0),1);
-
-  el.innerHTML=show.map(wk=>{
+  if(!el)return;
+  const keys=[...new Set([...Object.keys(weekHistory),currentWeekKey,todayWeekKey])].sort().slice(-10);
+  if(!keys.length){el.innerHTML='<div style="color:var(--gray-light);font-size:13px;padding:20px">Nenhum histórico ainda.</div>';return}
+  const maxV=Math.max(...keys.map(k=>weekHistory[k]?.totalCotas||0),1);
+  el.innerHTML=keys.map(wk=>{
     const total=weekHistory[wk]?.totalCotas||0;
-    const pct=Math.max((total/maxVal)*100,3);
-    const [,wStr]=wk.split('-W');
-    const active=wk===currentWeekKey?'active':'';
-    return`<div class="chart-week ${active}" onclick="goToWeekKey('${wk}')">
+    const pct=Math.max((total/maxV)*100,3);
+    const[,wStr]=wk.split('-W');
+    return`<div class="chart-week${wk===currentWeekKey?' active':''}" onclick="jumpToWeek('${wk}')">
       <div class="chart-num">${total}</div>
       <div class="chart-bar-wrap"><div class="chart-bar" style="height:${pct}%"></div></div>
       <div class="chart-week-label">Sem ${wStr}</div>
@@ -788,42 +615,30 @@ function renderChart(){
   }).join('');
 }
 
-function goToWeekKey(wk){
+function jumpToWeek(wk){
   currentWeekKey=wk;
-  const {monday}=getWeekBounds(wk);
+  const{monday}=getWeekBounds(wk);
   document.getElementById('calInput').value=monday.toISOString().split('T')[0];
   loadWeekVendas();
-  updateWeekUI();
 }
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════
 //  AÇÕES
-// ═══════════════════════════════════════════════════
-function changeVendas(id, delta){
-  if(!isCurrent()) return;
-  const cur=vendasSemana[id]||0;
-  const novo=Math.max(0,cur+delta);
+// ═══════════════════════════════════════
+function changeVendas(id,delta){
+  if(!isCurrent())return;
+  const novo=Math.max(0,(vendasSemana[id]||0)+delta);
   vendasSemana[id]=novo;
+  db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas/${id}`).set(novo);
+  renderAll();
   const v=vendedores[id];
-  if(demoMode){
-    saveDemoVendas();
-    renderAll();
-  } else {
-    db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas/${id}`).set(novo);
-    renderAll();
-  }
-  showToast(delta>0?`+1 cota para ${v?.nome||''} 🎉`:`−1 cota para ${v?.nome||''}`,(delta>0?'t-green':'t-red'));
+  showToast(delta>0?`+1 cota para ${v?.nome||''} 🎉`:`−1 cota para ${v?.nome||''}`,delta>0?'t-green':'t-red');
 }
 
-// ═══════════════════════════════════════════════════
-//  MODAL VENDEDOR
-// ═══════════════════════════════════════════════════
 function openAddModal(){
   editingId=null;
   document.getElementById('modalTitle').textContent='Adicionar Vendedor';
-  document.getElementById('inputNome').value='';
-  document.getElementById('inputEquipe').value='';
-  document.getElementById('inputFoto').value='';
+  ['inputNome','inputEquipe','inputFoto'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('inputVendas').value='0';
   document.getElementById('avatarPreview').src='https://placehold.co/60x60/1A3A6B/FFFFFF?text=?';
   document.getElementById('editModal').classList.add('open');
@@ -831,15 +646,14 @@ function openAddModal(){
 }
 
 function openEditModal(id){
-  const v=vendedores[id];
-  if(!v) return;
+  const v=vendedores[id]; if(!v)return;
   editingId=id;
   document.getElementById('modalTitle').textContent='Editar Vendedor';
   document.getElementById('inputNome').value=v.nome||'';
   document.getElementById('inputEquipe').value=v.equipe||'';
   document.getElementById('inputFoto').value=v.foto||'';
   document.getElementById('inputVendas').value=vendasSemana[id]||0;
-  document.getElementById('avatarPreview').src=getAvatarUrl(id,v);
+  document.getElementById('avatarPreview').src=getAvatar(id,v);
   document.getElementById('editModal').classList.add('open');
 }
 
@@ -850,42 +664,19 @@ function previewAvatar(url){
 function saveVendedor(){
   const nome=document.getElementById('inputNome').value.trim();
   if(!nome){showToast('Nome é obrigatório','t-red');return}
-  const equipe=document.getElementById('inputEquipe').value.trim();
-  const foto=document.getElementById('inputFoto').value.trim();
+  const vData={
+    nome,
+    equipe:document.getElementById('inputEquipe').value.trim(),
+    foto:document.getElementById('inputFoto').value.trim()
+  };
   const vendas=Math.max(0,parseInt(document.getElementById('inputVendas').value)||0);
-
-  if(editingId){
-    const vData={nome,equipe,foto};
-    if(demoMode){
-      vendedores[editingId]=vData;
-      vendasSemana[editingId]=vendas;
-      saveDemoVendas();
-      renderAll();
-    } else {
-      db.ref(`gr_ranking/vendedores/${editingId}`).set(vData);
-      db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas/${editingId}`).set(vendas);
-    }
-    showToast(`${nome} atualizado ✅`,'t-green');
-  } else {
-    const newId=demoMode?String(nextDemoId++):db.ref('gr_ranking/vendedores').push().key;
-    const vData={nome,equipe,foto};
-    if(demoMode){
-      vendedores[newId]=vData;
-      if(vendas>0) vendasSemana[newId]=vendas;
-      saveDemoVendas();
-      renderAll();
-    } else {
-      db.ref(`gr_ranking/vendedores/${newId}`).set(vData);
-      if(vendas>0) db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas/${newId}`).set(vendas);
-    }
-    showToast(`${nome} adicionado! 🎉`,'t-green');
-  }
+  const id=editingId||db.ref('gr_ranking/vendedores').push().key;
+  db.ref(`gr_ranking/vendedores/${id}`).set(vData);
+  if(vendas>0||editingId) db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas/${id}`).set(vendas);
+  showToast(editingId?`${nome} atualizado ✅`:`${nome} adicionado! 🎉`,'t-green');
   closeModal('editModal');
 }
 
-// ═══════════════════════════════════════════════════
-//  DELETE
-// ═══════════════════════════════════════════════════
 function confirmDelete(id){
   deletingId=id;
   const v=vendedores[id];
@@ -895,41 +686,24 @@ function confirmDelete(id){
 
 function doDelete(){
   const v=vendedores[deletingId];
-  if(demoMode){
-    delete vendedores[deletingId];
-    delete vendasSemana[deletingId];
-    saveDemoVendas();
-    renderAll();
-  } else {
-    db.ref(`gr_ranking/vendedores/${deletingId}`).remove();
-  }
+  db.ref(`gr_ranking/vendedores/${deletingId}`).remove();
   closeModal('deleteModal');
   showToast(`${v?.nome||'Vendedor'} removido`,'t-red');
 }
 
-// ═══════════════════════════════════════════════════
-//  RESET SEMANA
-// ═══════════════════════════════════════════════════
 function confirmReset(){
   if(!isCurrent()){showToast('Só é possível zerar a semana atual','t-red');return}
   document.getElementById('confirmModal').classList.add('open');
 }
 
 function doReset(){
+  db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas`).set({});
   vendasSemana={};
-  if(demoMode){
-    saveDemoVendas();
-    renderAll();
-  } else {
-    db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas`).set({});
-  }
   closeModal('confirmModal');
+  renderAll();
   showToast('Semana zerada! Bora vender 💪','t-green');
 }
 
-// ═══════════════════════════════════════════════════
-//  FILTROS / UTIL
-// ═══════════════════════════════════════════════════
 function setFilter(f,btn){
   currentFilter=f;
   document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
@@ -942,39 +716,22 @@ function closeModal(id){document.getElementById(id).classList.remove('open')}
 let toastTimer;
 function showToast(msg,type='t-blue'){
   const t=document.getElementById('toast');
-  t.textContent=msg;
-  t.className='toast '+type;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
+  t.textContent=msg; t.className='toast '+type; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
 }
 
-// ═══════════════════════════════════════════════════
-//  KEYBOARD
-// ═══════════════════════════════════════════════════
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){
-    ['editModal','confirmModal','deleteModal'].forEach(id=>closeModal(id));
-  }
+  if(e.key==='Escape') ['editModal','confirmModal','deleteModal'].forEach(id=>closeModal(id));
   if(e.key==='Enter'&&document.getElementById('editModal').classList.contains('open')) saveVendedor();
 });
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════
 //  BOOT
-// ═══════════════════════════════════════════════════
-(function boot(){
-  const saved=localStorage.getItem(CFG_KEY);
-  if(saved){
-    try{
-      const cfg=JSON.parse(saved);
-      document.getElementById('cfgApiKey').value=cfg.apiKey||'';
-      document.getElementById('cfgAuthDomain').value=cfg.authDomain||'';
-      document.getElementById('cfgDbUrl').value=cfg.databaseURL||'';
-      document.getElementById('cfgProjectId').value=cfg.projectId||'';
-      initFirebase(cfg);
-    }catch(e){document.getElementById('setupScreen').classList.remove('hidden')}
-  }
-})();
+// ═══════════════════════════════════════
+document.getElementById('loadingScreen').classList.add('hidden');
+document.getElementById('app').style.display='block';
+initWeek();
+startListeners();
 </script>
 </body>
 </html>
