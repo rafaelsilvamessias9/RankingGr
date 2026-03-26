@@ -68,6 +68,12 @@ header{position:relative;z-index:10;padding:20px 5vw 16px;display:flex;align-ite
 .btn-reset{background:rgba(255,68,68,.1);color:var(--red);border:1px solid rgba(255,68,68,.25)}
 .btn-reset:hover{background:rgba(255,68,68,.2)}
 
+/* PERIOD TABS */
+.period-tabs-bar{position:relative;z-index:10;margin:0 5vw;background:var(--surface2);border:1px solid var(--gold-border);border-bottom:none;padding:8px 16px;display:flex;gap:6px;align-items:center}
+.period-tab{padding:6px 16px;font-family:'Barlow',sans-serif;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border:1px solid rgba(201,168,76,.2);background:transparent;color:var(--gray-light);transition:all .2s}
+.period-tab.active{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
+.period-tab:hover:not(.active){border-color:var(--gold-border);color:var(--white)}
+
 /* WEEK NAV */
 .week-nav{position:relative;z-index:10;margin:0 5vw;background:var(--surface);border:1px solid var(--gold-border);border-top:none;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
 .week-nav-left{display:flex;align-items:center;gap:10px}
@@ -325,14 +331,20 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.8) sepia(1)
   </div>
 </header>
 
+<div class="period-tabs-bar">
+  <button class="period-tab" id="tab-mensal" onclick="setPeriod('mensal',this)">📅 Mensal</button>
+  <button class="period-tab active" id="tab-semanal" onclick="setPeriod('semanal',this)">📆 Semanal</button>
+  <button class="period-tab" id="tab-diario" onclick="setPeriod('diario',this)">🗓️ Diário</button>
+</div>
+
 <div class="week-nav">
   <div class="week-nav-left">
-    <button class="week-arrow" id="btnPrevWeek" onclick="goWeek(-1)">‹</button>
+    <button class="week-arrow" id="btnPrevWeek" onclick="goPeriod(-1)">‹</button>
     <div style="text-align:center">
       <div class="week-label" id="weekLabel">—</div>
       <div class="week-dates" id="weekDates">—</div>
     </div>
-    <button class="week-arrow" id="btnNextWeek" onclick="goWeek(1)">›</button>
+    <button class="week-arrow" id="btnNextWeek" onclick="goPeriod(1)">›</button>
   </div>
   <div class="week-nav-right">
     <span id="weekStatusBadge"></span>
@@ -342,18 +354,18 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.8) sepia(1)
 </div>
 
 <div class="meta-bar">
-  <div class="meta-item"><div class="meta-dot dot-green"></div><strong>Na meta</strong> — atingiu meta mensal</div>
-  <div class="meta-item"><div class="meta-dot dot-yellow"></div><strong>Próximo</strong> — ≥50% da meta</div>
-  <div class="meta-item"><div class="meta-dot dot-red"></div><strong>Abaixo</strong> — abaixo de 50%</div>
+  <div class="meta-item"><div class="meta-dot dot-green"></div><strong>Acima da meta</strong> — mais de 7 vendas</div>
+  <div class="meta-item"><div class="meta-dot dot-yellow"></div><strong>Na faixa</strong> — entre 6 e 7 vendas</div>
+  <div class="meta-item"><div class="meta-dot dot-red"></div><strong>Abaixo</strong> — menos de 6 vendas</div>
   <div class="meta-item" style="margin-left:auto;color:var(--gold)"><strong>Meta: <span id="metaDisplay">8</span> cotas/mês</strong><button class="meta-edit-btn" onclick="openMetaModal()">✏️ Alterar</button></div>
 </div>
 
 <div class="stats-wrap">
   <div class="stats-bar">
-    <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Cotas na semana</div></div>
+    <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label" id="statTotalLabel">Cotas na semana</div></div>
     <div class="stat-card"><div class="stat-num" id="statVendedores">0</div><div class="stat-label">Vendedores</div></div>
-    <div class="stat-card"><div class="stat-num" id="statMeta" style="color:var(--green);text-shadow:0 0 10px rgba(0,212,106,.4)">0</div><div class="stat-label">Na meta</div></div>
-    <div class="stat-card"><div class="stat-num" id="statAbaixo" style="color:var(--red)">0</div><div class="stat-label">Abaixo</div></div>
+    <div class="stat-card"><div class="stat-num" id="statMeta" style="color:var(--green);text-shadow:0 0 10px rgba(0,212,106,.4)">0</div><div class="stat-label">Acima de 7</div></div>
+    <div class="stat-card"><div class="stat-num" id="statAbaixo" style="color:var(--red)">0</div><div class="stat-label">Abaixo de 6</div></div>
   </div>
 </div>
 
@@ -525,7 +537,7 @@ const FLAGS=[
 // ═══════════════════════════════════════
 let META=parseInt(localStorage.getItem('gr_meta_mensal')||'8');
 let currentWeekKey='',todayWeekKey='';
-let weekHistory={},vendedores={},vendasSemana={},creditosVendedor={};
+let weekHistory={},vendedores={},vendasSemana={},vendasMes={},vendasDia={},creditosVendedor={};
 let currentFilter='todos',editingId=null,deletingId=null;
 let uploadingFoto=false;
 
@@ -562,12 +574,46 @@ function getWeekBounds(wk){
   return{monday:mon,sunday:sun};
 }
 function fmt(d){return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}
-function initWeek(){
-  todayWeekKey=getWeekKey(new Date());
-  currentWeekKey=todayWeekKey;
-  document.getElementById('calInput').value=new Date().toISOString().split('T')[0];
-  updateWeekUI();
+let currentPeriod='semanal'; // 'mensal' | 'semanal' | 'diario'
+let currentDayKey=''; // YYYY-MM-DD
+let currentMonthKey=''; // YYYY-MM
+let todayDayKey='',todayMonthKey='';
+
+function setPeriod(p,btn){
+  currentPeriod=p;
+  document.querySelectorAll('.period-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  // update stat card label
+  const labels={mensal:'Cotas no mês',semanal:'Cotas na semana',diario:'Cotas hoje'};
+  document.getElementById('statTotalLabel').textContent=labels[p];
+  updatePeriodUI();
+  loadPeriodVendas();
 }
+
+function getPeriodVendas(){
+  if(currentPeriod==='semanal') return vendasSemana;
+  if(currentPeriod==='mensal') return vendasMes;
+  return vendasDia;
+}
+
+function initWeek(){
+  const now=new Date();
+  todayWeekKey=getWeekKey(now);
+  currentWeekKey=todayWeekKey;
+  todayDayKey=now.toISOString().split('T')[0];
+  currentDayKey=todayDayKey;
+  todayMonthKey=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  currentMonthKey=todayMonthKey;
+  document.getElementById('calInput').value=todayDayKey;
+  updatePeriodUI();
+}
+
+function updatePeriodUI(){
+  if(currentPeriod==='semanal') updateWeekUI();
+  else if(currentPeriod==='mensal') updateMonthUI();
+  else updateDayUI();
+}
+
 function updateWeekUI(){
   const{monday,sunday}=getWeekBounds(currentWeekKey);
   const[,wStr]=currentWeekKey.split('-W');
@@ -580,23 +626,71 @@ function updateWeekUI(){
   document.getElementById('btnNextWeek').disabled=isCur;
   renderAll();
 }
-function goWeek(d){
-  const{monday}=getWeekBounds(currentWeekKey);
-  monday.setDate(monday.getDate()+d*7);
-  currentWeekKey=getWeekKey(monday);
-  document.getElementById('calInput').value=monday.toISOString().split('T')[0];
-  loadWeekVendas();
+
+function updateMonthUI(){
+  const[y,m]=currentMonthKey.split('-');
+  const monthNames=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('weekLabel').textContent=`${monthNames[parseInt(m)-1]} ${y}`;
+  document.getElementById('weekDates').textContent=`01/${m} — ${new Date(y,m,0).getDate()}/${m}`;
+  const isCur=currentMonthKey===todayMonthKey;
+  document.getElementById('weekStatusBadge').innerHTML=isCur
+    ?'<span class="week-current-badge">● Mês atual</span>'
+    :'<span class="week-past-badge">📅 Mês passado</span>';
+  document.getElementById('btnNextWeek').disabled=isCur;
+  renderAll();
 }
+
+function updateDayUI(){
+  const d=new Date(currentDayKey+'T12:00:00');
+  document.getElementById('weekLabel').textContent=d.toLocaleDateString('pt-BR',{weekday:'long'});
+  document.getElementById('weekDates').textContent=d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const isCur=currentDayKey===todayDayKey;
+  document.getElementById('weekStatusBadge').innerHTML=isCur
+    ?'<span class="week-current-badge">● Hoje</span>'
+    :'<span class="week-past-badge">📅 Dia passado</span>';
+  document.getElementById('btnNextWeek').disabled=isCur;
+  renderAll();
+}
+
+function goPeriod(d){
+  if(currentPeriod==='semanal'){
+    const{monday}=getWeekBounds(currentWeekKey);
+    monday.setDate(monday.getDate()+d*7);
+    currentWeekKey=getWeekKey(monday);
+    document.getElementById('calInput').value=monday.toISOString().split('T')[0];
+    loadWeekVendas();
+  } else if(currentPeriod==='mensal'){
+    const[y,m]=currentMonthKey.split('-').map(Number);
+    const nd=new Date(y,m-1+d,1);
+    currentMonthKey=nd.getFullYear()+'-'+String(nd.getMonth()+1).padStart(2,'0');
+    document.getElementById('calInput').value=nd.toISOString().split('T')[0];
+    loadMonthVendas();
+  } else {
+    const nd=new Date(currentDayKey+'T12:00:00');
+    nd.setDate(nd.getDate()+d);
+    currentDayKey=nd.toISOString().split('T')[0];
+    document.getElementById('calInput').value=currentDayKey;
+    loadDayVendas();
+  }
+}
+
 function goToDate(v){
   if(!v)return;
-  currentWeekKey=getWeekKey(new Date(v+'T12:00:00'));
-  loadWeekVendas();
+  const d=new Date(v+'T12:00:00');
+  currentWeekKey=getWeekKey(d);
+  currentDayKey=v;
+  currentMonthKey=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  loadPeriodVendas();
 }
 function goToday(){
   currentWeekKey=todayWeekKey;
-  document.getElementById('calInput').value=new Date().toISOString().split('T')[0];
-  loadWeekVendas();
+  currentDayKey=todayDayKey;
+  currentMonthKey=todayMonthKey;
+  document.getElementById('calInput').value=todayDayKey;
+  loadPeriodVendas();
 }
+function goWeek(d){goPeriod(d)}
+
 
 // ═══════════════════════════════════════
 //  FIREBASE LISTENERS
@@ -628,6 +722,35 @@ function loadWeekVendas(){
     vendasSemana=s.val()||{};
     updateWeekUI();
   });
+}
+function loadMonthVendas(){
+  // Sum all weeks in the month
+  db.ref('gr_ranking/semanas').once('value',s=>{
+    const data=s.val()||{};
+    const acc={};
+    Object.entries(data).forEach(([wk,wd])=>{
+      if(!wd||!wd.vendas) return;
+      // Determine if this week belongs to the selected month
+      const{monday}=getWeekBounds(wk);
+      const wkMonth=monday.getFullYear()+'-'+String(monday.getMonth()+1).padStart(2,'0');
+      if(wkMonth===currentMonthKey){
+        Object.entries(wd.vendas).forEach(([id,v])=>{ acc[id]=(acc[id]||0)+(v||0); });
+      }
+    });
+    vendasMes=acc;
+    updateMonthUI();
+  });
+}
+function loadDayVendas(){
+  db.ref(`gr_ranking/dias/${currentDayKey}/vendas`).once('value',s=>{
+    vendasDia=s.val()||{};
+    updateDayUI();
+  });
+}
+function loadPeriodVendas(){
+  if(currentPeriod==='semanal') loadWeekVendas();
+  else if(currentPeriod==='mensal') loadMonthVendas();
+  else loadDayVendas();
 }
 
 // ═══════════════════════════════════════
@@ -689,12 +812,11 @@ function handleFotoChange(input){
 //  HELPERS
 // ═══════════════════════════════════════
 const isCurrent=()=>currentWeekKey===todayWeekKey;
-function getStatus(v){return v>=META?'green':v>=(META*0.5)?'yellow':'red'}
+function getStatus(v){return v>7?'green':v>=6?'yellow':'red'}
 function getBadge(v){
   const s=getStatus(v);
-  const l={green:'✅ Na meta',yellow:'⚠️ Próximo',red:'🔴 Abaixo'};
-  const pct=META>0?Math.round((v/META)*100):0;
-  return`<span class="status-badge badge-${s}">${l[s]} ${pct}%</span>`;
+  const l={green:'✅ Acima',yellow:'⚠️ Na faixa',red:'🔴 Abaixo'};
+  return`<span class="status-badge badge-${s}">${l[s]} (${v})</span>`;
 }
 function getAvatar(id,v){
   if(v.foto&&v.foto.trim())return v.foto.trim();
@@ -703,8 +825,9 @@ function getAvatar(id,v){
   return`https://placehold.co/64x64/${cols[parseInt(id)%cols.length||0]}/C9A84C?text=${encodeURIComponent(ini)}`;
 }
 function getSorted(){
+  const pv=getPeriodVendas();
   return Object.entries(vendedores)
-    .map(([id,v])=>({id,...v,vendas:vendasSemana[id]||0}))
+    .map(([id,v])=>({id,...v,vendas:pv[id]||0}))
     .sort((a,b)=>b.vendas-a.vendas||(a.nome||'').localeCompare(b.nome||''));
 }
 function getFiltered(){
@@ -721,8 +844,8 @@ function renderStats(){
   const all=getSorted();
   document.getElementById('statTotal').textContent=all.reduce((s,v)=>s+v.vendas,0);
   document.getElementById('statVendedores').textContent=all.length;
-  document.getElementById('statMeta').textContent=all.filter(v=>v.vendas>=META).length;
-  document.getElementById('statAbaixo').textContent=all.filter(v=>v.vendas<META).length;
+  document.getElementById('statMeta').textContent=all.filter(v=>v.vendas>7).length;
+  document.getElementById('statAbaixo').textContent=all.filter(v=>v.vendas<6).length;
 }
 function renderPodium(){
   const s=getSorted();
@@ -745,7 +868,7 @@ function renderRanking(){
   const list=document.getElementById('rankList');
   const filtered=getFiltered();
   const sorted=getSorted();
-  const ro=!isCurrent();
+  const ro=currentPeriod==='mensal'||(currentPeriod==='semanal'&&!isCurrent())||(currentPeriod==='diario'&&currentDayKey!==todayDayKey);
   let html=ro?'<div class="readonly-notice">📅 Semana passada — somente leitura</div>':'';
   if(!filtered.length){
     list.innerHTML=html+'<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-text">Nenhum vendedor encontrado</div><div class="empty-sub">Adicione vendedores ou ajuste o filtro</div></div>';
@@ -756,7 +879,7 @@ function renderRanking(){
   html+=filtered.map(v=>{
     const pos=sorted.findIndex(x=>x.id===v.id)+1;
     const st=getStatus(v.vendas);
-    const prog=Math.min((v.vendas/META)*100,100);
+    const prog=Math.min((v.vendas/8)*100,100);
     const tc=pos<=3?topC[pos-1]:'';
     const acts=ro?'':`<div class="rank-actions">
       <div class="action-row">
@@ -816,10 +939,19 @@ function jumpToWeek(wk){
 //  AÇÕES
 // ═══════════════════════════════════════
 function changeVendas(id,delta){
-  if(!isCurrent())return;
-  const novo=Math.max(0,(vendasSemana[id]||0)+delta);
-  vendasSemana[id]=novo;
-  db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas/${id}`).set(novo);
+  if(currentPeriod==='semanal'&&!isCurrent())return;
+  let pv=getPeriodVendas();
+  const novo=Math.max(0,(pv[id]||0)+delta);
+  if(currentPeriod==='semanal'){
+    vendasSemana[id]=novo;
+    db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas/${id}`).set(novo);
+  } else if(currentPeriod==='mensal'){
+    // monthly is read-only (aggregated)
+    showToast('Edite as vendas na visão semanal ou diária','t-gold');return;
+  } else {
+    vendasDia[id]=novo;
+    db.ref(`gr_ranking/dias/${currentDayKey}/vendas/${id}`).set(novo);
+  }
   renderAll();
   const v=vendedores[id];
   showToast(delta>0?`+1 cota para ${v?.nome||''} 🎉`:`−1 cota para ${v?.nome||''}`,delta>0?'t-green':'t-red');
@@ -846,7 +978,7 @@ function openEditModal(id){
   document.getElementById('inputEquipe').value=v.equipe||'';
   document.getElementById('inputFotoUrl').value=v.foto||'';
   document.getElementById('inputCredito').value=v.credito||'';
-  document.getElementById('inputVendas').value=vendasSemana[id]||0;
+  document.getElementById('inputVendas').value=getPeriodVendas()[id]||0;
   document.getElementById('fotoPreview').src=getAvatar(id,v);
   document.getElementById('fotoInput').value='';
   document.getElementById('uploadBtnText').textContent=v.foto?'✅ Foto atual · Trocar':'📷 Escolher foto da galeria';
@@ -868,7 +1000,10 @@ function saveVendedor(){
   const vendas=Math.max(0,parseInt(document.getElementById('inputVendas').value)||0);
   const id=editingId||db.ref('gr_ranking/vendedores').push().key;
   db.ref(`gr_ranking/vendedores/${id}`).set(vData);
-  if(vendas>0||editingId) db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas/${id}`).set(vendas);
+  if(vendas>0||editingId){
+    if(currentPeriod==='diario') db.ref(`gr_ranking/dias/${currentDayKey}/vendas/${id}`).set(vendas);
+    else db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas/${id}`).set(vendas);
+  }
   showToast(editingId?`${nome} atualizado ✅`:`${nome} adicionado! 🎉`,'t-gold');
   closeModal('editModal');
 }
@@ -885,15 +1020,22 @@ function doDelete(){
   showToast(`${v?.nome||'Vendedor'} removido`,'t-red');
 }
 function confirmReset(){
-  if(!isCurrent()){showToast('Só é possível zerar a semana atual','t-red');return}
+  if(currentPeriod==='mensal'){showToast('Não é possível zerar a visão mensal','t-red');return}
+  if(currentPeriod==='semanal'&&!isCurrent()){showToast('Só é possível zerar a semana atual','t-red');return}
+  if(currentPeriod==='diario'&&currentDayKey!==todayDayKey){showToast('Só é possível zerar o dia atual','t-red');return}
   document.getElementById('confirmModal').classList.add('open');
 }
 function doReset(){
-  db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas`).set({});
-  vendasSemana={};
+  if(currentPeriod==='diario'){
+    db.ref(`gr_ranking/dias/${currentDayKey}/vendas`).set({});
+    vendasDia={};
+  } else {
+    db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas`).set({});
+    vendasSemana={};
+  }
   closeModal('confirmModal');
   renderAll();
-  showToast('Semana zerada! Bora vender 💪','t-gold');
+  showToast('Zerado! Bora vender 💪','t-gold');
 }
 function setFilter(f,btn){
   currentFilter=f;
