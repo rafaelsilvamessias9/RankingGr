@@ -812,10 +812,10 @@ function handleFotoChange(input){
 //  HELPERS
 // ═══════════════════════════════════════
 const isCurrent=()=>currentWeekKey===todayWeekKey;
-function getStatus(v){return v>7?'green':v>=6?'yellow':'red'}
+function getStatus(v){return v>=8?'green':v===7?'yellow':'red'}
 function getBadge(v){
   const s=getStatus(v);
-  const l={green:'✅ Acima',yellow:'⚠️ Na faixa',red:'🔴 Abaixo'};
+  const l={green:'✅ Meta',yellow:'⚠️ Próximo',red:'🔴 Abaixo'};
   return`<span class="status-badge badge-${s}">${l[s]} (${v})</span>`;
 }
 function getAvatar(id,v){
