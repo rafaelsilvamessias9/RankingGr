@@ -439,7 +439,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.8) sepia(1)
       </div>
     </div>
     <div class="modal-field">
-      <label class="modal-label">Vendas nesta semana</label>
+      <label class="modal-label" id="labelVendas">Vendas nesta semana</label>
       <input type="number" class="modal-input" id="inputVendas" placeholder="0" min="0">
     </div>
     <div class="modal-field">
@@ -537,7 +537,7 @@ const FLAGS=[
 // ═══════════════════════════════════════
 let META=parseInt(localStorage.getItem('gr_meta_mensal')||'8');
 let currentWeekKey='',todayWeekKey='';
-let weekHistory={},vendedores={},vendasSemana={},vendasMes={},vendasDia={},creditosVendedor={};
+let weekHistory={},vendedores={},vendasSemana={},vendasMes={},vendasMesManual={},vendasDia={},creditosVendedor={};
 let currentFilter='todos',editingId=null,deletingId=null;
 let uploadingFoto=false;
 
@@ -724,21 +724,26 @@ function loadWeekVendas(){
   });
 }
 function loadMonthVendas(){
-  // Sum all weeks in the month
+  // Sum all weeks in the month, then apply manual overrides
   db.ref('gr_ranking/semanas').once('value',s=>{
     const data=s.val()||{};
     const acc={};
     Object.entries(data).forEach(([wk,wd])=>{
       if(!wd||!wd.vendas) return;
-      // Determine if this week belongs to the selected month
       const{monday}=getWeekBounds(wk);
       const wkMonth=monday.getFullYear()+'-'+String(monday.getMonth()+1).padStart(2,'0');
       if(wkMonth===currentMonthKey){
         Object.entries(wd.vendas).forEach(([id,v])=>{ acc[id]=(acc[id]||0)+(v||0); });
       }
     });
-    vendasMes=acc;
-    updateMonthUI();
+    // Load manual overrides for this month
+    db.ref(`gr_ranking/meses/${currentMonthKey}/vendas`).once('value',ms=>{
+      vendasMesManual=ms.val()||{};
+      // Merge: manual overrides take precedence
+      vendasMes={...acc};
+      Object.entries(vendasMesManual).forEach(([id,v])=>{ vendasMes[id]=v; });
+      updateMonthUI();
+    });
   });
 }
 function loadDayVendas(){
@@ -868,8 +873,8 @@ function renderRanking(){
   const list=document.getElementById('rankList');
   const filtered=getFiltered();
   const sorted=getSorted();
-  const ro=currentPeriod==='mensal'||(currentPeriod==='semanal'&&!isCurrent())||(currentPeriod==='diario'&&currentDayKey!==todayDayKey);
-  let html=ro?'<div class="readonly-notice">📅 Semana passada — somente leitura</div>':'';
+  const ro=(currentPeriod==='mensal'&&currentMonthKey!==todayMonthKey)||(currentPeriod==='semanal'&&!isCurrent())||(currentPeriod==='diario'&&currentDayKey!==todayDayKey);
+  let html=ro?'<div class="readonly-notice">📅 Período passado — somente leitura</div>':'';
   if(!filtered.length){
     list.innerHTML=html+'<div class="empty-state"><div class="empty-icon">🏆</div><div class="empty-text">Nenhum vendedor encontrado</div><div class="empty-sub">Adicione vendedores ou ajuste o filtro</div></div>';
     return;
@@ -940,14 +945,16 @@ function jumpToWeek(wk){
 // ═══════════════════════════════════════
 function changeVendas(id,delta){
   if(currentPeriod==='semanal'&&!isCurrent())return;
+  if(currentPeriod==='diario'&&currentDayKey!==todayDayKey)return;
   let pv=getPeriodVendas();
   const novo=Math.max(0,(pv[id]||0)+delta);
   if(currentPeriod==='semanal'){
     vendasSemana[id]=novo;
     db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas/${id}`).set(novo);
   } else if(currentPeriod==='mensal'){
-    // monthly is read-only (aggregated)
-    showToast('Edite as vendas na visão semanal ou diária','t-gold');return;
+    vendasMes[id]=novo;
+    vendasMesManual[id]=novo;
+    db.ref(`gr_ranking/meses/${currentMonthKey}/vendas/${id}`).set(novo);
   } else {
     vendasDia[id]=novo;
     db.ref(`gr_ranking/dias/${currentDayKey}/vendas/${id}`).set(novo);
@@ -961,6 +968,8 @@ function openAddModal(){
   document.getElementById('modalTitle').textContent='Adicionar Vendedor';
   ['inputNome','inputEquipe','inputFotoUrl','inputCredito'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('inputVendas').value='0';
+  const labels={mensal:'Cotas neste mês (override manual)',semanal:'Vendas nesta semana',diario:'Vendas hoje'};
+  document.getElementById('labelVendas').textContent=labels[currentPeriod]||'Vendas nesta semana';
   document.getElementById('fotoPreview').src='https://placehold.co/64x64/17150A/C9A84C?text=?';
   document.getElementById('fotoInput').value='';
   document.getElementById('uploadBtnText').textContent='📷 Escolher foto da galeria';
@@ -979,6 +988,8 @@ function openEditModal(id){
   document.getElementById('inputFotoUrl').value=v.foto||'';
   document.getElementById('inputCredito').value=v.credito||'';
   document.getElementById('inputVendas').value=getPeriodVendas()[id]||0;
+  const labels={mensal:'Cotas neste mês (override manual)',semanal:'Vendas nesta semana',diario:'Vendas hoje'};
+  document.getElementById('labelVendas').textContent=labels[currentPeriod]||'Vendas nesta semana';
   document.getElementById('fotoPreview').src=getAvatar(id,v);
   document.getElementById('fotoInput').value='';
   document.getElementById('uploadBtnText').textContent=v.foto?'✅ Foto atual · Trocar':'📷 Escolher foto da galeria';
@@ -1002,6 +1013,7 @@ function saveVendedor(){
   db.ref(`gr_ranking/vendedores/${id}`).set(vData);
   if(vendas>0||editingId){
     if(currentPeriod==='diario') db.ref(`gr_ranking/dias/${currentDayKey}/vendas/${id}`).set(vendas);
+    else if(currentPeriod==='mensal') db.ref(`gr_ranking/meses/${currentMonthKey}/vendas/${id}`).set(vendas);
     else db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas/${id}`).set(vendas);
   }
   showToast(editingId?`${nome} atualizado ✅`:`${nome} adicionado! 🎉`,'t-gold');
@@ -1020,7 +1032,7 @@ function doDelete(){
   showToast(`${v?.nome||'Vendedor'} removido`,'t-red');
 }
 function confirmReset(){
-  if(currentPeriod==='mensal'){showToast('Não é possível zerar a visão mensal','t-red');return}
+  if(currentPeriod==='mensal'&&currentMonthKey!==todayMonthKey){showToast('Só é possível zerar o mês atual','t-red');return}
   if(currentPeriod==='semanal'&&!isCurrent()){showToast('Só é possível zerar a semana atual','t-red');return}
   if(currentPeriod==='diario'&&currentDayKey!==todayDayKey){showToast('Só é possível zerar o dia atual','t-red');return}
   document.getElementById('confirmModal').classList.add('open');
@@ -1029,6 +1041,14 @@ function doReset(){
   if(currentPeriod==='diario'){
     db.ref(`gr_ranking/dias/${currentDayKey}/vendas`).set({});
     vendasDia={};
+  } else if(currentPeriod==='mensal'){
+    db.ref(`gr_ranking/meses/${currentMonthKey}/vendas`).set({});
+    vendasMesManual={};
+    // Rebuild vendasMes from weekly aggregation
+    loadMonthVendas();
+    closeModal('confirmModal');
+    showToast('Overrides mensais zerados! Valores voltam ao agregado semanal 💪','t-gold');
+    return;
   } else {
     db.ref(`gr_ranking/semanas/${currentWeekKey}/vendas`).set({});
     vendasSemana={};
