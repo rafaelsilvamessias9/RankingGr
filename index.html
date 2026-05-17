@@ -32,15 +32,6 @@ body::after{content:'';position:fixed;inset:0;
 .watermark{position:fixed;inset:0;z-index:1;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .watermark svg{width:min(55vw,420px);height:auto;opacity:.045;filter:drop-shadow(0 0 40px rgba(201,168,76,.3))}
 
-/* BANDEIRINHAS */
-.bunting{position:relative;z-index:10;overflow:hidden;height:36px;display:flex;align-items:center;background:rgba(0,0,0,.3);border-bottom:1px solid var(--gold-border)}
-.bunting-inner{display:flex;gap:0;animation:scroll-flags 30s linear infinite;white-space:nowrap}
-.bunting-inner:hover{animation-play-state:paused}
-.flag-item{display:inline-flex;align-items:center;gap:4px;padding:0 10px;font-size:18px;position:relative}
-.flag-item::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);width:1px;height:16px;background:var(--gold-border)}
-@keyframes scroll-flags{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-.flag-name{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray-light)}
-
 /* LOADING */
 #loadingScreen{position:fixed;inset:0;background:var(--bg);z-index:9998;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px}
 #loadingScreen.hidden{display:none}
