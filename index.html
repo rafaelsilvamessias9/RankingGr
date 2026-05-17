@@ -280,11 +280,6 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(.8) sepia(1)
 </head>
 <body>
 
-<!-- BANDEIRINHAS -->
-<div class="bunting">
-  <div class="bunting-inner" id="buntingInner"></div>
-</div>
-
 <!-- WATERMARK GR -->
 <div class="watermark">
   <svg viewBox="0 0 400 460" xmlns="http://www.w3.org/2000/svg" fill="none">
@@ -502,26 +497,6 @@ const firebaseConfig={
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 const storage=firebase.storage();
-
-// ═══════════════════════════════════════
-//  BANDEIRINHAS
-// ═══════════════════════════════════════
-const FLAGS=[
-  {emoji:'🇧🇷',name:'Brasil'},{emoji:'🇵🇹',name:'Portugal'},
-  {emoji:'🇩🇪',name:'Alemanha'},{emoji:'🇦🇷',name:'Argentina'},
-  {emoji:'🇫🇷',name:'França'},{emoji:'🇪🇸',name:'Espanha'},
-  {emoji:'🇮🇹',name:'Itália'},{emoji:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',name:'Inglaterra'},
-  {emoji:'🇳🇱',name:'Holanda'},{emoji:'🇯🇵',name:'Japão'},
-  {emoji:'🇺🇾',name:'Uruguai'},{emoji:'🇲🇽',name:'México'},
-  {emoji:'🇨🇭',name:'Suíça'},{emoji:'🇧🇪',name:'Bélgica'},
-  {emoji:'🇨🇷',name:'Costa Rica'},{emoji:'🇸🇳',name:'Senegal'},
-];
-(function buildBunting(){
-  const inner=document.getElementById('buntingInner');
-  // duplica para loop contínuo
-  const all=[...FLAGS,...FLAGS,...FLAGS];
-  inner.innerHTML=all.map(f=>`<span class="flag-item">${f.emoji}<span class="flag-name">${f.name}</span></span>`).join('');
-})();
 
 // ═══════════════════════════════════════
 //  ESTADO
